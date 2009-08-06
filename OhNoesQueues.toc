@@ -7,3 +7,4 @@
 ## Notes: Improved battleground joining.
 
 core.lua
+localization.lua

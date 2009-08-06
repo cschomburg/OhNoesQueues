@@ -1,3 +1,17 @@
+local L = {
+	["Alterac Valley"] = true,
+	["Arathi Basin"] = true,
+	["Eye of the Storm"] = true,
+	["Isle of Conquest"] = true,
+	["Strand of the Ancients"] = true,
+	["Warsong Gulch"] = true,
+}
+for k,v in pairs(L) do
+	if(v == true) then
+		L[k] = k
+	end
+end
+
 local colors = {
 	["queued"]	= { 1, 1, 0 },
 	["confirm"] = { 1, 0, 0 },
@@ -17,7 +31,7 @@ local IDs = {
 -- Make room for the unbelievable
 PVPBattlegroundFrameZoneDescription:Hide()
 
-local frame = CreateFrame("Frame", nil, PVPBattlegroundFrame)
+local frame = CreateFrame("Frame", "OhNoesQueues", PVPBattlegroundFrame)
 frame:SetPoint("TOPLEFT", 30, -290)
 frame:SetWidth(293)
 frame:SetHeight(115)
@@ -26,6 +40,7 @@ frame:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("BAG_UPDATE")
 frame:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
+frame.Locale = L
 
 local buttons = {}
 local requested
@@ -147,7 +162,7 @@ function frame:PLAYER_ENTERING_WORLD()
 		button:SetScript("OnLeave", buttonLeave)
 
 		local icon = button:CreateTexture(nil, "ARTWORK")
-		local iconTexture = IDs[name] and select(10, GetItemInfo(IDs[name]))
+		local iconTexture = IDs[L[name]] and select(10, GetItemInfo(IDs[L[name]]))
 		icon:SetTexture(iconTexture)
 		icon:SetPoint("CENTER", 0, 3)
 		icon:SetWidth(25)
