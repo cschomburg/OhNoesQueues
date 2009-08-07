@@ -11,9 +11,9 @@ elseif(loc == "frFR") then
 	L["Vallée d'Alterac"] = "Alterac Valley"
 	L["Bassin d'Arathi"] = "Arathi Basin"
 	L["Goulet des Chanteguerres"] = "Warsong Gulch"
-	L["Île des Conquérants"] = "Eye of the Storm"
+	L["L'Œil du cyclone"] = "Eye of the Storm"
 	L["Rivage des Anciens"] = "Strand of the Ancients"
-	L["L'Œil du cyclone"] = "Isle of Conquest"
+	L["Île des Conquérants"] = "Isle of Conquest"
 elseif(loc == "ruRU") then
 	L["Альтеракская долина"] = "Alterac Valley"
 	L["Низина Арати"] = "Arathi Basin"

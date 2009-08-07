@@ -27,6 +27,19 @@ local IDs = {
 	["Warsong Gulch"] = 20558,
 }
 
+local holidayInd = CreateFrame("Frame")
+holidayInd:Hide()
+holidayInd:SetWidth(61)
+holidayInd:SetHeight(57)
+holidayInd:SetScale(0.8)
+holidayInd.tex = holidayInd:CreateTexture(nil, "OVERLAY")
+holidayInd.tex:SetTexture([[Interface\ItemSocketingFrame\UI-ItemSockets]])
+holidayInd.tex:SetAllPoints()
+holidayInd.tex:SetTexCoord(0.7578125, 0.9921875, 0, 0.22265625)
+--holidayInd.tex:SetTexCoord(0.5546875, 0.7578125, 0, 0.20703125)
+
+gHoliday = holidayInd
+
 
 -- Make room for the unbelievable
 PVPBattlegroundFrameZoneDescription:Hide()
@@ -46,9 +59,10 @@ local buttons = {}
 local requested
 
 function frame:UPDATE_BATTLEFIELD_STATUS()
+	holidayInd:Hide()
 	for _, button in ipairs(buttons) do
 		button.color:Hide()
-		local _, canEnter = GetBattlegroundInfo(button.id)
+		local _, canEnter, isHoliday = GetBattlegroundInfo(button.id)
 		canEnter = not canEnter and 1 or nil
 		if(canEnter) then
 			button:SetAlpha(0.6)
@@ -62,6 +76,12 @@ function frame:UPDATE_BATTLEFIELD_STATUS()
 			button.icon:SetDesaturated(nil)
 			button.border:SetDesaturated(nil)
 			button.marks:Show()
+		end
+		if(isHoliday) then
+			holidayInd:Show()
+			holidayInd:SetParent(button)
+			holidayInd:ClearAllPoints()
+			holidayInd:SetPoint("CENTER", button, "CENTER", 0, 1)
 		end
 	end
 	for i=1, MAX_BATTLEFIELD_QUEUES do

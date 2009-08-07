@@ -1,7 +1,7 @@
 ## Interface: 30200
 ## Title: OhNoesQueues
 ## Author: Cargor
-## Version: 1.0
+## Version: 1.1
 ## X-eMail: xconstruct@gmail.com
 ## X-Website: http://www.xconstruct.net
 ## Notes: Improved battleground joining.
