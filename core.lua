@@ -98,11 +98,13 @@ end
 
 function frame:BAG_UPDATE()
 	for _, button in ipairs(buttons) do
-		local marks = IDs[button.name] and GetItemCount(IDs[button.name], true)
-		if(marks) then
-			local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
-			button.marks:SetTextColor(r,g,b, 0.7)
-			button.marks:SetText(marks)
+		if(L[button.name) then
+			local marks = GetItemCount(IDs[L[button.name]], true)
+			if(marks) then
+				local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
+				button.marks:SetTextColor(r,g,b, 0.7)
+				button.marks:SetText(marks)
+			end
 		end
 	end
 end
@@ -162,7 +164,10 @@ function frame:PLAYER_ENTERING_WORLD()
 		button:SetScript("OnLeave", buttonLeave)
 
 		local icon = button:CreateTexture(nil, "ARTWORK")
-		local iconTexture = IDs[L[name]] and select(10, GetItemInfo(IDs[L[name]]))
+		if(L[name]) then
+			local iconTexture = select(10, GetItemInfo(IDs[L[name]]))
+			icon:SetTexture(iconTexture)
+		end
 		icon:SetTexture(iconTexture)
 		icon:SetPoint("CENTER", 0, 3)
 		icon:SetWidth(25)
