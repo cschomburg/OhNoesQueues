@@ -49,11 +49,12 @@ function frame:UPDATE_BATTLEFIELD_STATUS()
 	-- We need this, because Blizz' GetBattlefieldStatus() delivers sometimes funny results ...
 	for _, button in ipairs(buttons) do
 		button.color:Hide()
+		button.status = "none"
 	end
 	for i=1, MAX_BATTLEFIELD_QUEUES do
 		local status, name = GetBattlefieldStatus(i)
 		local button = buttons[name]
-		if(button) then
+		if(button and status ~= "none") then
 			button.status = status
 			button.statusID = i
 			if(colors[status]) then
