@@ -98,7 +98,7 @@ end
 
 function frame:BAG_UPDATE()
 	for _, button in ipairs(buttons) do
-		if(L[button.name) then
+		if(L[button.name]) then
 			local marks = GetItemCount(IDs[L[button.name]], true)
 			if(marks) then
 				local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
@@ -168,7 +168,6 @@ function frame:PLAYER_ENTERING_WORLD()
 			local iconTexture = select(10, GetItemInfo(IDs[L[name]]))
 			icon:SetTexture(iconTexture)
 		end
-		icon:SetTexture(iconTexture)
 		icon:SetPoint("CENTER", 0, 3)
 		icon:SetWidth(25)
 		icon:SetHeight(25)
