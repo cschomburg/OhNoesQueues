@@ -1,44 +1,32 @@
-local L = {
-	["Alterac Valley"] = true,
-	["Arathi Basin"] = true,
-	["Eye of the Storm"] = true,
-	["Isle of Conquest"] = true,
-	["Strand of the Ancients"] = true,
-	["Warsong Gulch"] = true,
+local IDs = {
+	20560, -- AV
+	20558, -- WS
+	20559, -- AB
+	29024, -- EotS
+	42425, -- IoC
+	47395, -- SotA
 }
-for k,v in pairs(L) do
-	if(v == true) then
-		L[k] = k
-	end
-end
 
 local colors = {
-	["queued"]	= { 1, 1, 0 },
+	["queued"] = { 1, 1, 0 },
 	["confirm"] = { 1, 0, 0 },
-	["active"]	= { 0, 1, 0 },
+	["active"] = { 0, 1, 0 },
 }
 
-local IDs = {
-	["Alterac Valley"] = 20560,
-	["Arathi Basin"] = 20559,
-	["Eye of the Storm"] = 29024,
-	["Isle of Conquest"] = 47395,
-	["Strand of the Ancients"] = 42425,
-	["Warsong Gulch"] = 20558,
-}
+local wgMarks, wgShards = 43589, 43228
 
-local holidayInd = CreateFrame("Frame")
-holidayInd:Hide()
-holidayInd:SetWidth(61)
-holidayInd:SetHeight(57)
-holidayInd:SetScale(0.8)
-holidayInd.tex = holidayInd:CreateTexture(nil, "OVERLAY")
-holidayInd.tex:SetTexture([[Interface\ItemSocketingFrame\UI-ItemSockets]])
-holidayInd.tex:SetAllPoints()
-holidayInd.tex:SetTexCoord(0.7578125, 0.9921875, 0, 0.22265625)
---holidayInd.tex:SetTexCoord(0.5546875, 0.7578125, 0, 0.20703125)
-
-gHoliday = holidayInd
+local holidayInd
+local function createHolidayIndicator()
+	holidayInd = CreateFrame("Frame")
+	holidayInd:Hide()
+	holidayInd:SetWidth(61)
+	holidayInd:SetHeight(57)
+	holidayInd:SetScale(0.8)
+	holidayInd.tex = holidayInd:CreateTexture(nil, "OVERLAY")
+	holidayInd.tex:SetTexture([[Interface\ItemSocketingFrame\UI-ItemSockets]])
+	holidayInd.tex:SetAllPoints()
+	holidayInd.tex:SetTexCoord(0.7578125, 0.9921875, 0, 0.22265625)
+end
 
 
 -- Make room for the unbelievable
@@ -53,31 +41,30 @@ frame:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("BAG_UPDATE")
 frame:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
-frame.Locale = L
 
 local buttons = {}
 local requested
 
 function frame:UPDATE_BATTLEFIELD_STATUS()
-	holidayInd:Hide()
+	if(holidayInd) then holidayInd:Hide() end
 	for _, button in ipairs(buttons) do
 		button.color:Hide()
 		local _, canEnter, isHoliday = GetBattlegroundInfo(button.id)
-		canEnter = not canEnter and 1 or nil
 		if(canEnter) then
-			button:SetAlpha(0.6)
-			button:EnableMouse(nil)
-			button.icon:SetDesaturated(1)
-			button.border:SetDesaturated(1)
-			button.marks:Hide()
-		else
 			button:SetAlpha(1)
 			button:EnableMouse(true)
 			button.icon:SetDesaturated(nil)
 			button.border:SetDesaturated(nil)
 			button.marks:Show()
+		else
+			button:SetAlpha(0.6)
+			button:EnableMouse(nil)
+			button.icon:SetDesaturated(1)
+			button.border:SetDesaturated(1)
+			button.marks:Hide()
 		end
 		if(isHoliday) then
+			if(not holidayInd) then createHolidayIndicator() end
 			holidayInd:Show()
 			holidayInd:SetParent(button)
 			holidayInd:ClearAllPoints()
@@ -93,8 +80,6 @@ function frame:UPDATE_BATTLEFIELD_STATUS()
 			if(colors[status]) then
 				button.color:Show()
 				button.color:SetVertexColor(unpack(colors[status]))
-			else
-				button.color:Hide()
 			end
 		end
 	end
@@ -118,14 +103,10 @@ end
 
 function frame:BAG_UPDATE()
 	for _, button in ipairs(buttons) do
-		if(L[button.name]) then
-			local marks = GetItemCount(IDs[L[button.name]], true)
-			if(marks) then
-				local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
-				button.marks:SetTextColor(r,g,b, 0.7)
-				button.marks:SetText(marks)
-			end
-		end
+		local marks = GetItemCount(IDs[button.id], true)
+		local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
+		button.marks:SetTextColor(r,g,b, 0.7)
+		button.marks:SetText(marks)
 	end
 end
 
@@ -184,10 +165,8 @@ function frame:PLAYER_ENTERING_WORLD()
 		button:SetScript("OnLeave", buttonLeave)
 
 		local icon = button:CreateTexture(nil, "ARTWORK")
-		if(L[name]) then
-			local iconTexture = select(10, GetItemInfo(IDs[L[name]]))
-			icon:SetTexture(iconTexture)
-		end
+		local iconTexture = select(10, GetItemInfo(IDs[i]))
+		icon:SetTexture(iconTexture)
 		icon:SetPoint("CENTER", 0, 3)
 		icon:SetWidth(25)
 		icon:SetHeight(25)
