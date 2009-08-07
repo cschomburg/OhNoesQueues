@@ -13,7 +13,7 @@ local colors = {
 	["active"] = { 0, 1, 0 },
 }
 
-local wgMarks, wgShards = 43589, 43228
+--local wgMarks, wgShards = 43589, 43228
 
 local holidayInd
 local function createHolidayIndicator()
