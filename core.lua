@@ -50,15 +50,13 @@ function frame:UPDATE_BATTLEFIELD_STATUS()
 	for _, button in ipairs(buttons) do
 		button.color:Hide()
 		local _, canEnter, isHoliday = GetBattlegroundInfo(button.id)
+		button:EnableMouse(canEnter)
+		button:SetAlpha(canEnter and 1 or 0.6)
 		if(canEnter) then
-			button:SetAlpha(1)
-			button:EnableMouse(true)
 			button.icon:SetDesaturated(nil)
 			button.border:SetDesaturated(nil)
-			button.marks:Show()
+			button.marks:Show() -- need some kind of button:SetShown(bool) :/
 		else
-			button:SetAlpha(0.6)
-			button:EnableMouse(nil)
 			button.icon:SetDesaturated(1)
 			button.border:SetDesaturated(1)
 			button.marks:Hide()
