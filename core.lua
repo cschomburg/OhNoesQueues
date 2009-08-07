@@ -46,6 +46,10 @@ local buttons = {}
 local requested
 
 function frame:UPDATE_BATTLEFIELD_STATUS()
+	-- We need this, because Blizz' GetBattlefieldStatus() delivers sometimes funny results ...
+	for _, button in ipairs(buttons) do
+		button.color:Hide()
+	end
 	for i=1, MAX_BATTLEFIELD_QUEUES do
 		local status, name = GetBattlefieldStatus(i)
 		local button = buttons[name]
@@ -55,8 +59,6 @@ function frame:UPDATE_BATTLEFIELD_STATUS()
 			if(colors[status]) then
 				button.color:Show()
 				button.color:SetVertexColor(unpack(colors[status]))
-			else
-				button.color:Hide()
 			end
 		end
 	end
