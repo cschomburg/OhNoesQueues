@@ -15,7 +15,7 @@ local colors = {
 
 --local wgMarks, wgShards = 43589, 43228
 
-local holidayInd
+local holidayInd, holidayID
 local function createHolidayIndicator()
 	holidayInd = CreateFrame("Frame")
 	holidayInd:Hide()
@@ -46,9 +46,24 @@ local buttons = {}
 local requested
 
 function frame:UPDATE_BATTLEFIELD_STATUS()
-	if(holidayInd) then holidayInd:Hide() end
+	for i=1, MAX_BATTLEFIELD_QUEUES do
+		local status, name = GetBattlefieldStatus(i)
+		local button = buttons[name]
+		if(button) then
+			button.status = status
+			button.statusID = i
+			if(colors[status]) then
+				button.color:Show()
+				button.color:SetVertexColor(unpack(colors[status]))
+			else
+				button.color:Hide()
+			end
+		end
+	end
+end
+
+frame:SetScript("OnShow", function()
 	for _, button in ipairs(buttons) do
-		button.color:Hide()
 		local _, canEnter, isHoliday = GetBattlegroundInfo(button.id)
 		button:EnableMouse(canEnter)
 		button:SetAlpha(canEnter and 1 or 0.6)
@@ -61,28 +76,20 @@ function frame:UPDATE_BATTLEFIELD_STATUS()
 			button.border:SetDesaturated(1)
 			button.marks:Hide()
 		end
-		if(isHoliday) then
+		if(isHoliday and not holidayID == button.id) then
 			if(not holidayInd) then createHolidayIndicator() end
 			holidayInd:Show()
 			holidayInd:SetParent(button)
 			holidayInd:ClearAllPoints()
 			holidayInd:SetPoint("CENTER", button, "CENTER", 0, 1)
+			holidayID = button.id
+		elseif(holidayID == button.id) then
+			holidayInd:Hide()
 		end
 	end
-	for i=1, MAX_BATTLEFIELD_QUEUES do
-		local status, name = GetBattlefieldStatus(i)
-		local button = buttons[name]
-		if(button) then
-			button.status = status
-			button.statusID = i
-			if(colors[status]) then
-				button.color:Show()
-				button.color:SetVertexColor(unpack(colors[status]))
-			end
-		end
-	end
-end
+end)
 
+-- Win: Blizz' Events-naming
 function frame:PVPQUEUE_ANYWHERE_SHOW()
 	if(not requested) then return end
 	JoinBattlefield(0, (requested == "group" and CanJoinBattlefieldAsGroup() and 1 or 0))
