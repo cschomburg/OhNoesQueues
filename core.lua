@@ -136,17 +136,62 @@ local function buttonClick(self, button)
 	end
 end
 
+-- returns the plural of a measuring unit according to the value
+local function plural(value, unit)
+	return ("%d %s%s"):format(value, unit, value == 1 and "" or "s")
+end
+
+-- returns a combination of hours/minutes/seconds from a given number of miliseconds
+local function getDuration(time)
+	-- treating something that is returned as 0ms from GetBattlefieldEstimatedWaitTime
+	-- when you join a BG for which there are no instances existing
+	-- not 100% correct
+	if(time == 0) then return "< 1 minute" end
+
+	time = math.floor(time/1000)
+	local sec = mod(time, 60)
+	local min = mod(floor(time / 60), 60)
+	local hours = floor(time / 3600)
+
+	-- we return time in hours, minutes and seconds
+	if(hours > 0) then
+		return plural(hours, "hour" )..", "..plural(min, "minute" )..", "..plural(sec, "second")
+	elseif(min > 0) then -- we return time in minutes and seconds
+		return plural(min, "minute")..", "..plural(sec, "second")
+	else -- we return time in seconds
+		return plural(sec, "second")
+	end	
+end
+
 local function buttonEnter(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 	GameTooltip:AddLine(self.name, 1,1,1)
 	GameTooltip:AddLine(" ")
 	local status = self.status
 	if(status == "confirm") then
+		-- adding expiration time
+		local time = GetBattlefieldPortExpiration(self.statusID)
+		if(time > 0) then
+			GameTooltip:AddLine("Expiration time: |cffffffff"..getDuration(time).."|r")
+		end
+
 		GameTooltip:AddLine("Left-click: |cffffffffAccept port|r")
 	end
 	if(status == "active") then
 		GameTooltip:AddLine("Right-click: |cffffffffLeave battleground|r")
 	elseif(status == "confirm" or status == "queued") then
+		-- adding to tooltip the estimated wait time
+		local time = GetBattlefieldEstimatedWaitTime(self.statusID)
+		if(time > 0) then
+			GameTooltip:AddLine("Estimated wait time: |cffffffff"..getDuration(time).."|r")
+		end
+
+		-- adding to tooltip the waited time
+		local time = GetBattlefieldTimeWaited( self.statusID )
+		if(time > 0) then
+			GameTooltip:AddLine("Waited time: |cffffffff"..getDuration(time).."|r")
+		end
+
 		GameTooltip:AddLine("Right-click: |cffffffffLeave queue|r")
 	else
 		GameTooltip:AddLine("Left-click: |cffffffffJoin as group or solo|r")
