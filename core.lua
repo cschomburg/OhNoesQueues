@@ -146,9 +146,9 @@ local function getDuration(time)
 	-- treating something that is returned as 0ms from GetBattlefieldEstimatedWaitTime
 	-- when you join a BG for which there are no instances existing
 	-- not 100% correct
+	time = floor(time/1000)
 	if(time == 0) then return "< 1 minute" end
 
-	time = math.floor(time/1000)
 	local sec = mod(time, 60)
 	local min = mod(floor(time / 60), 60)
 	local hours = floor(time / 3600)
