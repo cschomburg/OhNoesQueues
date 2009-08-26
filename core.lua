@@ -3,8 +3,8 @@ local IDs = {
 	20558, -- WS
 	20559, -- AB
 	29024, -- EotS
-	42425, -- IoC
-	47395, -- SotA
+	42425, -- SotA
+	47395, -- IoC
 }
 
 local colors = {
@@ -160,7 +160,7 @@ local function getDuration(time)
 		return plural(min, "minute")..", "..plural(sec, "second")
 	else -- we return time in seconds
 		return plural(sec, "second")
-	end	
+	end
 end
 
 local function buttonEnter(self)
@@ -216,6 +216,7 @@ function frame:PLAYER_ENTERING_WORLD()
 		button:SetScript("OnClick", buttonClick)
 		button:SetScript("OnEnter", buttonEnter)
 		button:SetScript("OnLeave", buttonLeave)
+		button.UpdateTooltip = buttonEnter
 
 		local icon = button:CreateTexture(nil, "ARTWORK")
 		local iconTexture = select(10, GetItemInfo(IDs[i]))
