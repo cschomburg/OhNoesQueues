@@ -4,6 +4,7 @@
 ## Version: 1.3
 ## X-eMail: xconstruct@gmail.com
 ## X-Website: http://www.xconstruct.net
+## X-Credits: veselu for his engagement in this mod
 ## Notes: Improved battleground joining.
 
 core.lua

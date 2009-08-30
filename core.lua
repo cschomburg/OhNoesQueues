@@ -79,7 +79,7 @@ frame:SetScript("OnShow", function()
 			button.border:SetDesaturated(1)
 			button.marks:Hide()
 		end
-		if(isHoliday and not holidayID == button.id) then
+		if(isHoliday) then
 			if(not holidayInd) then createHolidayIndicator() end
 			holidayInd:Show()
 			holidayInd:SetParent(button)
@@ -120,8 +120,17 @@ end
 
 local function buttonClick(self, button)
 	local status = self.status
-	if(status == "active" and button == "RightButton") then
-		LeaveBattlefield()
+	if(status == "active") then
+		if(button=="RightButton") then
+			LeaveBattlefield()
+		else
+			if(toggletfs) then
+				TogglePVPFrame()
+				toggletfs()
+			else
+				ToggleWorldStateScoreFrame()
+			end
+		end
 	elseif(status == "queued" or status == "confirm") then
 		local accept = button ~= "RightButton" and 1
 		AcceptBattlefieldPort(self.statusID, accept)
@@ -145,10 +154,11 @@ end
 local function getDuration(time)
 	-- treating something that is returned as 0ms from GetBattlefieldEstimatedWaitTime
 	-- when you join a BG for which there are no instances existing
-	-- not 100% correct
-	time = floor(time/1000)
-	if(time == 0) then return "< 1 minute" end
+	-- I noticed that the values returned are below 800ms usually
+	-- so treating this better than the previous one
+	if(time < 800) then return "< 1 minute" end
 
+	time = floor(time/1000)
 	local sec = mod(time, 60)
 	local min = mod(floor(time / 60), 60)
 	local hours = floor(time / 3600)
@@ -172,12 +182,13 @@ local function buttonEnter(self)
 		-- adding expiration time
 		local time = GetBattlefieldPortExpiration(self.statusID)
 		if(time > 0) then
-			GameTooltip:AddLine("Expiration time: |cffffffff"..getDuration(time).."|r")
+			GameTooltip:AddLine("Expiration time: |cffffffff"..plural(time, "second").."|r")
 		end
 
 		GameTooltip:AddLine("Left-click: |cffffffffAccept port|r")
 	end
 	if(status == "active") then
+		GameTooltip:AddLine("Left-click: |cffffffffOpen score board|r")
 		GameTooltip:AddLine("Right-click: |cffffffffLeave battleground|r")
 	elseif(status == "confirm" or status == "queued") then
 		-- adding to tooltip the estimated wait time
