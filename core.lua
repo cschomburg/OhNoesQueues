@@ -132,7 +132,7 @@ end)
 -- Win: Blizz' Events-naming
 function frame:PVPQUEUE_ANYWHERE_SHOW()
 	if(not requested) then return end
-	JoinBattlefield(0, (requested == "group" and CanJoinBattlefieldAsGroup() and 1 or 0))
+	JoinBattlefield(0, (requested == "group" and IsPartyLeader() and CanJoinBattlefieldAsGroup()))
 	requested = nil
 end
 
