@@ -126,6 +126,14 @@ frame:SetScript("OnShow", function()
 		local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
 		button.marks:SetTextColor(r,g,b, 0.7)
 		button.marks:SetText(marks)
+
+		-- Wintergrasp mark and shard count
+		PVPBATTLEGROUND_WINTERGRASPTIMER = format("%d |T%s:15:15:0:-5|t   %d |T%s:15:15:0:-5|t|n|cffffffff%%s|r",
+			GetItemCount(43589),
+			GetItemIcon(43589),
+			GetItemCount(43228),
+			GetItemIcon(43228)
+		)
 	end
 end)
 
