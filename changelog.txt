@@ -1,0 +1,21 @@
+Version 1.4
+* display win statistics
+* wintergrasp marks and shards display
+* left-click in active battleground toggles scoreboard (veselu)
+- fix: holiday-indicator (veselu)
+- fix: expiration time (veselu)
+- fix: only group-join when party leader
+
+
+Version 1.3
+- veselu: included wait and port times
+- tooltip now updates automatically
+
+Version 1.2
+- we don't need locales anymore (thanks p3lim!)
+- some code cleanup
+- battleground-holiday indicators, yay!
+
+Version 1.1
+- deDE / frFR localization complete (does it work?)
+- all other locales work for old battlegrounds, I still need the names of SotA and IoC 
