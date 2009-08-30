@@ -1,17 +1,33 @@
-local IDs = {
-	20560, -- AV
-	20558, -- WS
-	20559, -- AB
-	29024, -- EotS
-	42425, -- SotA
-	47395, -- IoC
-}
+local displayWinStats = true -- Display your win-statistics
+
+--					AV		WS		AB		EotS	SotA	IoC
+local IDs = 	{	20560,	20558,	20559,	29024,	42425,	47395	}
+local won = 	{	49,		105,	51,		50,		1550,	4097	}
+local total = 	{	53,		52,		55,		54,		1549,	4096	}
 
 local colors = {
 	["queued"] = { 1, 1, 0 },
 	["confirm"] = { 1, 0, 0 },
 	["active"] = { 0, 1, 0 },
 }
+
+-- Color function for Marks of Honor
+local function ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
+	if perc >= 1 then return r3, g3, b3 elseif perc <= 0 then return r1, g1, b1 end
+
+	local segment, relperc = math.modf(perc*2)
+	if segment == 1 then r1, g1, b1, r2, g2, b2 = r2, g2, b2, r3, g3, b3 end
+	return r1 + (r2-r1)*relperc, g1 + (g2-g1)*relperc, b1 + (b2-b1)*relperc
+end
+
+-- Get percent, win total info by battleground id
+local function getWinTotal(id)
+	if(not won[id] or not total[id]) then return 0, 0 end
+	local total, won = GetStatistic(total[id]), GetStatistic(won[id])
+	if(total == "--") then total = 0 else total = tonumber(total) or 0 end
+	if(won == "--") then won = 0 else won = tonumber(won) or 0 end
+	return won,total
+end
 
 --local wgMarks, wgShards = 43589, 43228
 
@@ -39,7 +55,6 @@ frame:SetHeight(115)
 frame:RegisterEvent("PVPQUEUE_ANYWHERE_SHOW")
 frame:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:RegisterEvent("BAG_UPDATE")
 frame:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
 
 local buttons = {}
@@ -67,6 +82,7 @@ end
 
 frame:SetScript("OnShow", function()
 	for _, button in ipairs(buttons) do
+		-- Can enter
 		local _, canEnter, isHoliday = GetBattlegroundInfo(button.id)
 		button:EnableMouse(canEnter)
 		button:SetAlpha(canEnter and 1 or 0.6)
@@ -79,6 +95,8 @@ frame:SetScript("OnShow", function()
 			button.border:SetDesaturated(1)
 			button.marks:Hide()
 		end
+
+		-- Holiday indicator
 		if(isHoliday) then
 			if(not holidayInd) then createHolidayIndicator() end
 			holidayInd:Show()
@@ -89,6 +107,25 @@ frame:SetScript("OnShow", function()
 		elseif(holidayID == button.id) then
 			holidayInd:Hide()
 		end
+
+		-- Win statistics
+		if(displayWinStats) then
+			local win, total = getWinTotal(button.id)
+			if(total > 0) then
+				local r,g,b = ColorGradient(win/total, 1,0,0, 1,1,0, 0,1,0)
+				button.stats:SetTextColor(r,g,b, 0.9)
+				button.stats:SetFormattedText("%.0f%%", win/total*100)
+			else
+				button.stats:SetTextColor(1,1,1, 0.5)
+				button.stats:SetText("--")
+			end
+		end
+
+		-- Marks of honor
+		local marks = GetItemCount(IDs[button.id], true)
+		local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
+		button.marks:SetTextColor(r,g,b, 0.7)
+		button.marks:SetText(marks)
 	end
 end)
 
@@ -97,25 +134,6 @@ function frame:PVPQUEUE_ANYWHERE_SHOW()
 	if(not requested) then return end
 	JoinBattlefield(0, (requested == "group" and CanJoinBattlefieldAsGroup() and 1 or 0))
 	requested = nil
-end
-
--- Color function for Marks of Honor
-local function ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
-	if perc >= 1 then return r3, g3, b3 elseif perc <= 0 then return r1, g1, b1 end
-
-	local segment, relperc = math.modf(perc*2)
-	if segment == 1 then r1, g1, b1, r2, g2, b2 = r2, g2, b2, r3, g3, b3 end
-	return r1 + (r2-r1)*relperc, g1 + (g2-g1)*relperc, b1 + (b2-b1)*relperc
-end
-
-
-function frame:BAG_UPDATE()
-	for _, button in ipairs(buttons) do
-		local marks = GetItemCount(IDs[button.id], true)
-		local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
-		button.marks:SetTextColor(r,g,b, 0.7)
-		button.marks:SetText(marks)
-	end
 end
 
 local function buttonClick(self, button)
@@ -220,7 +238,7 @@ function frame:PLAYER_ENTERING_WORLD()
 		local button = CreateFrame("Button", nil, frame)
 		button:SetWidth(36)
 		button:SetHeight(36)
-		button:SetPoint("TOPLEFT", 8 + (i-1)*47, -27)
+		button:SetPoint("TOPLEFT", 8 + (i-1)*47, -27 + (displayWinStats and 10 or 0))
 
 		button:RegisterForClicks("anyUp")
 
@@ -256,12 +274,17 @@ function frame:PLAYER_ENTERING_WORLD()
 		marks:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
 		marks:SetPoint("TOP", button, "BOTTOM", 0, -10)
 
+		local stats = button:CreateFontString(nil, "OVERLAY")
+		stats:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+		stats:SetPoint("TOP", marks, "BOTTOM", 0, -10)
+
 		button.id = i
 		button.name = name
 		button.icon = icon
 		button.border = border
 		button.color = color
 		button.marks = marks
+		button.stats = stats
 		buttons[i] = button
 		buttons[name] = button
 	end
