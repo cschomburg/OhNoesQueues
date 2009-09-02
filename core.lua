@@ -1,15 +1,12 @@
 local displayWinStats = true -- Display your win-statistics
 
---					AV		WS		AB		EotS	SotA	IoC
-local IDs = 	{	20560,	20558,	20559,	29024,	42425,	47395	}
-local won = 	{	49,		105,	51,		50,		1550,	4097	}
-local total = 	{	53,		52,		55,		54,		1549,	4096	}
-
 local colors = {
 	["queued"] = { 1, 1, 0 },
 	["confirm"] = { 1, 0, 0 },
 	["active"] = { 0, 1, 0 },
 }
+
+local LPVP = LibStub("LibCargPVP")
 
 -- Color function for Marks of Honor
 local function ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
@@ -19,17 +16,6 @@ local function ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
 	if segment == 1 then r1, g1, b1, r2, g2, b2 = r2, g2, b2, r3, g3, b3 end
 	return r1 + (r2-r1)*relperc, g1 + (g2-g1)*relperc, b1 + (b2-b1)*relperc
 end
-
--- Get percent, win total info by battleground id
-local function getWinTotal(id)
-	if(not won[id] or not total[id]) then return 0, 0 end
-	local total, won = GetStatistic(total[id]), GetStatistic(won[id])
-	if(total == "--") then total = 0 else total = tonumber(total) or 0 end
-	if(won == "--") then won = 0 else won = tonumber(won) or 0 end
-	return won,total
-end
-
---local wgMarks, wgShards = 43589, 43228
 
 local holidayInd, holidayID
 local function createHolidayIndicator()
@@ -110,7 +96,7 @@ frame:SetScript("OnShow", function()
 
 		-- Win statistics
 		if(displayWinStats) then
-			local win, total = getWinTotal(button.id)
+			local win, total = LPVP.GetBattlegroundWinTotal(button.id)
 			if(total > 0) then
 				local r,g,b = ColorGradient(win/total, 1,0,0, 1,1,0, 0,1,0)
 				button.stats:SetTextColor(r,g,b, 0.9)
@@ -122,7 +108,7 @@ frame:SetScript("OnShow", function()
 		end
 
 		-- Marks of honor
-		local marks = GetItemCount(IDs[button.id], true)
+		local marks = LPVP.GetBattlegroundMarkCount(button.id)
 		local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
 		button.marks:SetTextColor(r,g,b, 0.7)
 		button.marks:SetText(marks)
@@ -256,8 +242,8 @@ function frame:PLAYER_ENTERING_WORLD()
 		button.UpdateTooltip = buttonEnter
 
 		local icon = button:CreateTexture(nil, "ARTWORK")
-		local iconTexture = select(10, GetItemInfo(IDs[i]))
-		icon:SetTexture(iconTexture)
+		local itemTexture = GetItemIcon(LPVP.GetBattlegroundMarkID(i))
+		icon:SetTexture(itemTexture)
 		icon:SetPoint("CENTER", 0, 3)
 		icon:SetWidth(25)
 		icon:SetHeight(25)
