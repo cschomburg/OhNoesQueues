@@ -13,3 +13,4 @@ core.lua
 
 infos\winStats.lua
 infos\marks.lua
+infos\xp.lua

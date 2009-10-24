@@ -1,7 +1,8 @@
 -- Config for tah lazy
-local configTexts = {"Marks", "Win Chance"}
+local configTexts = {"Marks", "BG XP needed"}
 
 
+local OhNoesQueues = CreateFrame("Frame", "OhNoesQueues", PVPBattlegroundFrame)
 local LPVP = LibStub("LibCargPVP")
 local colors = {
 	["queued"] = { 1, 1, 0 },
@@ -9,8 +10,8 @@ local colors = {
 	["active"] = { 0, 1, 0 },
 }
 
--- Color function for Marks of Honor
-local function ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
+-- Why can't Blizz implement this function? :O
+function OhNoesQueues.ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
 	if perc >= 1 then return r3, g3, b3 elseif perc <= 0 then return r1, g1, b1 end
 
 	local segment, relperc = math.modf(perc*2)
@@ -35,7 +36,6 @@ end
 -- Make room for the unbelievable
 PVPBattlegroundFrameZoneDescription:Hide()
 
-local OhNoesQueues = CreateFrame("Frame", "OhNoesQueues", PVPBattlegroundFrame)
 OhNoesQueues:SetPoint("TOPLEFT", 30, -290)
 OhNoesQueues:SetWidth(293)
 OhNoesQueues:SetHeight(115)
@@ -71,7 +71,7 @@ function OhNoesQueues:UPDATE_BATTLEFIELD_STATUS()
 	end
 end
 
-OhNoesQueues:SetScript("OnShow", function()
+OhNoesQueues:SetScript("OnShow", function(self)
 	if(not buttons) then self:CreateButtons() end
 
 	for _, button in ipairs(buttons) do
@@ -83,11 +83,9 @@ OhNoesQueues:SetScript("OnShow", function()
 		if(canEnter) then
 			button.icon:SetDesaturated(nil)
 			button.border:SetDesaturated(nil)
-			button.marks:Show() -- need some kind of button:SetShown(bool) :/
 		else
 			button.icon:SetDesaturated(1)
 			button.border:SetDesaturated(1)
-			button.marks:Hide()
 		end
 
 		-- Holiday indicator
@@ -235,10 +233,10 @@ function OhNoesQueues:CreateButtons()
 	for i=1, GetNumBattlegroundTypes() do
 		local name, canEnter, isHoliday, minlevel = GetBattlegroundInfo(i)
 
-		local button = CreateFrame("Button", nil, frame)
+		local button = CreateFrame("Button", nil, self)
 		button:SetWidth(36)
 		button:SetHeight(36)
-		button:SetPoint("TOPLEFT", 8 + (i-1)*47, -27 + (displayWinStats and 10 or 0))
+		button:SetPoint("TOPLEFT", 8 + (i-1)*47, -17)
 
 		button:RegisterForClicks("anyUp")
 
@@ -276,7 +274,7 @@ function OhNoesQueues:CreateButtons()
 
 		local secText = button:CreateFontString(nil, "OVERLAY")
 		secText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
-		secText:SetPoint("TOP", marks, "BOTTOM", 0, -10)
+		secText:SetPoint("TOP", primText, "BOTTOM", 0, -10)
 
 		local primFrame = CreateFrame("Frame", nil, button)
 		primFrame:SetAllPoints(primText)
