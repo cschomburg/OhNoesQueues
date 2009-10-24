@@ -1,7 +1,7 @@
 ## Interface: 30200
 ## Title: OhNoesQueues
 ## Author: Cargor
-## Version: 1.5
+## Version: 2.0
 ## X-eMail: xconstruct@gmail.com
 ## X-Website: http://www.xconstruct.net
 ## X-Credits: veselu for his engagement in this mod
@@ -10,3 +10,6 @@
 LibStub.lua
 LibCargPVP\LibCargPVP.lua
 core.lua
+
+infos\winStats.lua
+infos\marks.lua

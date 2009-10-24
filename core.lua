@@ -1,12 +1,13 @@
-local displayWinStats = true -- Display your win-statistics
+-- Config for tah lazy
+local configTexts = {"Marks", "Win Chance"}
 
+
+local LPVP = LibStub("LibCargPVP")
 local colors = {
 	["queued"] = { 1, 1, 0 },
 	["confirm"] = { 1, 0, 0 },
 	["active"] = { 0, 1, 0 },
 }
-
-local LPVP = LibStub("LibCargPVP")
 
 -- Color function for Marks of Honor
 local function ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
@@ -34,19 +35,23 @@ end
 -- Make room for the unbelievable
 PVPBattlegroundFrameZoneDescription:Hide()
 
-local frame = CreateFrame("Frame", "OhNoesQueues", PVPBattlegroundFrame)
-frame:SetPoint("TOPLEFT", 30, -290)
-frame:SetWidth(293)
-frame:SetHeight(115)
-frame:RegisterEvent("PVPQUEUE_ANYWHERE_SHOW")
-frame:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
+local OhNoesQueues = CreateFrame("Frame", "OhNoesQueues", PVPBattlegroundFrame)
+OhNoesQueues:SetPoint("TOPLEFT", 30, -290)
+OhNoesQueues:SetWidth(293)
+OhNoesQueues:SetHeight(115)
+OhNoesQueues:RegisterEvent("PVPQUEUE_ANYWHERE_SHOW")
+OhNoesQueues:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
+OhNoesQueues:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
 
-local buttons = {}
-local requested
+local infoTexts = {}
+OhNoesQueues.InfoTexts = infoTexts
+function OhNoesQueues:RegisterInfoText(name, func)
+	infoTexts[name] = func
+end
 
-function frame:UPDATE_BATTLEFIELD_STATUS()
+local buttons, requested
+
+function OhNoesQueues:UPDATE_BATTLEFIELD_STATUS()
 	-- We need this, because Blizz' GetBattlefieldStatus() delivers sometimes funny results ...
 	for _, button in ipairs(buttons) do
 		button.color:Hide()
@@ -66,10 +71,13 @@ function frame:UPDATE_BATTLEFIELD_STATUS()
 	end
 end
 
-frame:SetScript("OnShow", function()
+OhNoesQueues:SetScript("OnShow", function()
+	if(not buttons) then self:CreateButtons() end
+
 	for _, button in ipairs(buttons) do
 		-- Can enter
 		local _, canEnter, isHoliday = GetBattlegroundInfo(button.id)
+
 		button:EnableMouse(canEnter)
 		button:SetAlpha(canEnter and 1 or 0.6)
 		if(canEnter) then
@@ -94,24 +102,13 @@ frame:SetScript("OnShow", function()
 			holidayInd:Hide()
 		end
 
-		-- Win statistics
-		if(displayWinStats) then
-			local win, total = LPVP.GetBattlegroundWinTotal(button.id)
-			if(total > 0) then
-				local r,g,b = ColorGradient(win/total, 1,0,0, 1,1,0, 0,1,0)
-				button.stats:SetTextColor(r,g,b, 0.9)
-				button.stats:SetFormattedText("%.0f%%", win/total*100)
-			else
-				button.stats:SetTextColor(1,1,1, 0.5)
-				button.stats:SetText("--")
-			end
+		local primFunc, secFunc = infoTexts[configTexts[1]], infoTexts[configTexts[2]]
+		if(primFunc) then
+			primFunc(button, button.primText)
 		end
-
-		-- Marks of honor
-		local marks = LPVP.GetBattlegroundMarkCount(button.id)
-		local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
-		button.marks:SetTextColor(r,g,b, 0.7)
-		button.marks:SetText(marks)
+		if(secFunc) then
+			secFunc(button, button.secText)
+		end
 
 		-- Wintergrasp mark and shard count
 		PVPBATTLEGROUND_WINTERGRASPTIMER = format("%d |T%s:15:15:0:-5|t   %d |T%s:15:15:0:-5|t|n|cffffffff%%s|r",
@@ -124,7 +121,7 @@ frame:SetScript("OnShow", function()
 end)
 
 -- Win: Blizz' Events-naming
-function frame:PVPQUEUE_ANYWHERE_SHOW()
+function OhNoesQueues:PVPQUEUE_ANYWHERE_SHOW()
 	if(not requested) then return end
 	JoinBattlefield(0, (requested == "group" and IsPartyLeader() and CanJoinBattlefieldAsGroup()))
 	requested = nil
@@ -210,7 +207,7 @@ local function buttonEnter(self)
 		end
 
 		-- adding to tooltip the waited time
-		local time = GetBattlefieldTimeWaited( self.statusID )
+		local time = GetBattlefieldTimeWaited(self.statusID)
 		if(time > 0) then
 			GameTooltip:AddLine("Waited time: |cffffffff"..getDuration(time).."|r")
 		end
@@ -225,7 +222,16 @@ end
 
 local function buttonLeave() GameTooltip:Hide() end
 
-function frame:PLAYER_ENTERING_WORLD()
+local function textEnter(self)
+	if(self.onEnter) then
+		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+		self.onEnter(text)
+		GameTooltip:Show()
+	end
+end
+
+function OhNoesQueues:CreateButtons()
+	buttons = {}
 	for i=1, GetNumBattlegroundTypes() do
 		local name, canEnter, isHoliday, minlevel = GetBattlegroundInfo(i)
 
@@ -264,13 +270,27 @@ function frame:PLAYER_ENTERING_WORLD()
 		color:SetPoint("CENTER", button, "CENTER", 0, 3)
 		color:Hide()
 
-		local marks = button:CreateFontString(nil, "OVERLAY")
-		marks:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
-		marks:SetPoint("TOP", button, "BOTTOM", 0, -10)
+		local primText = button:CreateFontString(nil, "OVERLAY")
+		primText:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+		primText:SetPoint("TOP", button, "BOTTOM", 0, -10)
 
-		local stats = button:CreateFontString(nil, "OVERLAY")
-		stats:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
-		stats:SetPoint("TOP", marks, "BOTTOM", 0, -10)
+		local secText = button:CreateFontString(nil, "OVERLAY")
+		secText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+		secText:SetPoint("TOP", marks, "BOTTOM", 0, -10)
+
+		local primFrame = CreateFrame("Frame", nil, button)
+		primFrame:SetAllPoints(primText)
+		primFrame:EnableMouse(true)
+		primFrame:SetScript("OnEnter", textEnter)
+		primFrame:SetScript("OnLeave", buttonLeave)
+		primFrame.text = primText
+
+		local secFrame = CreateFrame("Frame", nil, button)
+		secFrame:SetAllPoints(secText)
+		secFrame:EnableMouse(true)
+		secFrame:SetScript("OnEnter", textEnter)
+		secFrame:SetScript("OnLeave", buttonLeave)
+		secFrame.text = secText
 
 		button.id = i
 		button.name = name
@@ -278,10 +298,10 @@ function frame:PLAYER_ENTERING_WORLD()
 		button.border = border
 		button.color = color
 		button.marks = marks
-		button.stats = stats
+		button.primText = primText
+		button.secText = secText
 		buttons[i] = button
 		buttons[name] = button
 	end
-	self:UPDATE_BATTLEFIELD_STATUS()
-	self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+	OhNoesQueues:UPDATE_BATTLEFIELD_STATUS()
 end
