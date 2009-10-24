@@ -40,7 +40,6 @@ OhNoesQueues:SetPoint("TOPLEFT", 30, -290)
 OhNoesQueues:SetWidth(293)
 OhNoesQueues:SetHeight(115)
 OhNoesQueues:RegisterEvent("PVPQUEUE_ANYWHERE_SHOW")
-OhNoesQueues:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
 OhNoesQueues:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
 
 local infoTexts = {}
@@ -302,4 +301,5 @@ function OhNoesQueues:CreateButtons()
 		buttons[name] = button
 	end
 	OhNoesQueues:UPDATE_BATTLEFIELD_STATUS()
+	OhNoesQueues:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
 end
