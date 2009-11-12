@@ -34,7 +34,8 @@ end
 
 
 -- Make room for the unbelievable
-PVPBattlegroundFrameZoneDescription:Hide()
+local zoneDesc = PVPBattlegroundFrameZoneDescription or PVPBattlegroundFrameZoneDescriptionText
+zoneDesc:Hide()
 
 OhNoesQueues:SetPoint("TOPLEFT", 30, -290)
 OhNoesQueues:SetWidth(293)
