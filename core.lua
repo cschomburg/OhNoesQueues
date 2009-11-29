@@ -1,7 +1,3 @@
--- Config for tah lazy
-local configTexts = {"Marks", "BG XP needed"}
-
-
 local OhNoesQueues = CreateFrame("Frame", "OhNoesQueues", PVPBattlegroundFrame)
 local LPVP = LibStub("LibCargPVP")
 local colors = {
@@ -11,7 +7,7 @@ local colors = {
 }
 
 -- Why can't Blizz implement this function? :O
-function OhNoesQueues.ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
+local function ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
 	if perc >= 1 then return r3, g3, b3 elseif perc <= 0 then return r1, g1, b1 end
 
 	local segment, relperc = math.modf(perc*2)
@@ -37,11 +33,22 @@ end
 local zoneDesc = PVPBattlegroundFrameZoneDescription or PVPBattlegroundFrameZoneDescriptionText
 zoneDesc:Hide()
 
-OhNoesQueues:SetPoint("TOPLEFT", 30, -290)
-OhNoesQueues:SetWidth(293)
-OhNoesQueues:SetHeight(115)
+OhNoesQueues:SetPoint("TOPLEFT", 17, -73)
+OhNoesQueues:SetWidth(323)
+OhNoesQueues:SetHeight(356)
+OhNoesQueues:SetFrameLevel(4)
 OhNoesQueues:RegisterEvent("PVPQUEUE_ANYWHERE_SHOW")
 OhNoesQueues:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
+
+for i,dir in pairs{"TopLeft", "BottomLeft", "TopRight", "BottomRight"} do
+	local tex = OhNoesQueues:CreateTexture(nil, "BACKGROUND")
+	tex:SetPoint(dir:upper())
+	dir = dir:gsub("Bottom", "Bot") -- Thanks Blizz ...
+	tex:SetTexture("Interface\\QuestFrame\\UI-QuestLog-Empty-"..dir)
+	tex:SetWidth(i > 2 and 50 or 274)
+	tex:SetHeight(i % 2 == 0 and 106 or 256)
+	tex:SetTexCoord(0, i > 2 and 0.71875 or 1, 0, i % 2 == 0 and 0.828125 or 1)
+end
 
 local infoTexts = {}
 OhNoesQueues.InfoTexts = infoTexts
@@ -49,7 +56,7 @@ function OhNoesQueues:RegisterInfoText(name, func)
 	infoTexts[name] = func
 end
 
-local buttons, requested
+local buttons
 
 function OhNoesQueues:UPDATE_BATTLEFIELD_STATUS()
 	-- We need this, because Blizz' GetBattlefieldStatus() delivers sometimes funny results ...
@@ -83,9 +90,15 @@ OhNoesQueues:SetScript("OnShow", function(self)
 		if(canEnter) then
 			button.icon:SetDesaturated(nil)
 			button.border:SetDesaturated(nil)
+			button.primText:Show()
+			button.secText:Show()
+			button.thirdText:Show()
 		else
 			button.icon:SetDesaturated(1)
 			button.border:SetDesaturated(1)
+			button.primText:Hide()
+			button.secText:Hide()
+			button.thirdText:Hide()
 		end
 
 		-- Holiday indicator
@@ -100,12 +113,25 @@ OhNoesQueues:SetScript("OnShow", function(self)
 			holidayInd:Hide()
 		end
 
-		local primFunc, secFunc = infoTexts[configTexts[1]], infoTexts[configTexts[2]]
-		if(primFunc) then
-			primFunc(button, button.primText)
+		local marks = LPVP.GetBattlegroundMarkCount(button.id)
+		local r,g,b = ColorGradient(marks/30, 1,0,0, 1,1,0, 0,1,0)
+		button.primText:SetFormattedText("|cff%2x%2x%2x%d|r", r*255,g*255,b*255, marks)
+
+		local xp = LPVP.GetAverageBattlegroundExperience(button.id)
+		if(xp) then
+			local forLevel = (UnitXPMax("player")-UnitXP("player")) / xp
+			local r,g,b = ColorGradient(forLevel/10, 0,1,0, 1,1,0, 1,0,0)
+			button.secText:SetFormattedText("|cff%2x%2x%2x%.1f|r", r*255,g*255,b*255, forLevel)
+		else
+			button.secText:SetText("")
 		end
-		if(secFunc) then
-			secFunc(button, button.secText)
+
+		local win, total = LPVP.GetBattlegroundWinTotal(button.id)
+		if(total > 0) then
+			local r,g,b = ColorGradient(win/total, 1,0,0, 1,1,0, 0,1,0)
+			button.thirdText:SetFormattedText("|cff%2x%2x%2x%d%%|r of %d", r*255, g*255, b*255, win/total*100, total)
+		else
+			button.thirdText:SetText("")
 		end
 
 		-- Wintergrasp mark and shard count
@@ -118,11 +144,20 @@ OhNoesQueues:SetScript("OnShow", function(self)
 	end
 end)
 
+local joinType, requested, reqTwo
+
 -- Win: Blizz' Events-naming
 function OhNoesQueues:PVPQUEUE_ANYWHERE_SHOW()
 	if(not requested) then return end
-	JoinBattlefield(0, (requested == "group" and IsPartyLeader() and CanJoinBattlefieldAsGroup()))
+	JoinBattlefield(0, joinType == "group" and IsPartyLeader() and CanJoinBattlefieldAsGroup())
 	requested = nil
+	if(reqTwo) then self:Join(joinType, reqTwo) end
+end
+
+function OhNoesQueues:Join(type, id, idTwo)
+	joinType, requested, reqTwo = type, id, idTwo
+	PVPBattlegroundFrame.selectedBG = id
+	RequestBattlegroundInstanceInfo(id)
 end
 
 local function buttonClick(self, button)
@@ -142,13 +177,7 @@ local function buttonClick(self, button)
 		local accept = button ~= "RightButton" and 1
 		AcceptBattlefieldPort(self.statusID, accept)
 	else
-		if(button == "LeftButton") then
-			requested = "group"
-		else
-			requested = "solo"
-		end
-		PVPBattlegroundFrame.selectedBG = self.id
-		RequestBattlegroundInstanceInfo(self.id)
+		OhNoesQueues:Join(button == "LeftButton" and "group" or "solo", self.id)
 	end
 end
 
@@ -230,13 +259,15 @@ end
 
 function OhNoesQueues:CreateButtons()
 	buttons = {}
-	for i=1, GetNumBattlegroundTypes() do
+	local maxBG = GetNumBattlegroundTypes()
+	for i=1, maxBG do
 		local name, canEnter, isHoliday, minlevel = GetBattlegroundInfo(i)
 
 		local button = CreateFrame("Button", nil, self)
 		button:SetWidth(36)
 		button:SetHeight(36)
-		button:SetPoint("TOPLEFT", 8 + (i-1)*47, -17)
+
+		button:SetPoint("TOP", 0, 25-i*45)
 
 		button:RegisterForClicks("anyUp")
 
@@ -270,34 +301,26 @@ function OhNoesQueues:CreateButtons()
 
 		local primText = button:CreateFontString(nil, "OVERLAY")
 		primText:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
-		primText:SetPoint("TOP", button, "BOTTOM", 0, -10)
+		primText:SetPoint("LEFT", button, "RIGHT", 30, 0)
 
 		local secText = button:CreateFontString(nil, "OVERLAY")
 		secText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
-		secText:SetPoint("TOP", primText, "BOTTOM", 0, -10)
+		secText:SetPoint("LEFT", primText, "RIGHT", 30, 0)
 
-		local primFrame = CreateFrame("Frame", nil, button)
-		primFrame:SetAllPoints(primText)
-		primFrame:EnableMouse(true)
-		primFrame:SetScript("OnEnter", textEnter)
-		primFrame:SetScript("OnLeave", buttonLeave)
-		primFrame.text = primText
-
-		local secFrame = CreateFrame("Frame", nil, button)
-		secFrame:SetAllPoints(secText)
-		secFrame:EnableMouse(true)
-		secFrame:SetScript("OnEnter", textEnter)
-		secFrame:SetScript("OnLeave", buttonLeave)
-		secFrame.text = secText
+		local thirdText = button:CreateFontString(nil, "OVERLAY")
+		thirdText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+		thirdText:SetPoint("CENTER", button, "LEFT", -70, 0)
 
 		button.id = i
 		button.name = name
 		button.icon = icon
 		button.border = border
 		button.color = color
-		button.marks = marks
+
 		button.primText = primText
 		button.secText = secText
+		button.thirdText = thirdText
+
 		buttons[i] = button
 		buttons[name] = button
 	end

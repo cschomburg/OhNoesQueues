@@ -10,6 +10,7 @@
 LibStub.lua
 LibCargPVP\LibCargPVP.lua
 core.lua
+layout.lua
 
 infos\winStats.lua
 infos\marks.lua
