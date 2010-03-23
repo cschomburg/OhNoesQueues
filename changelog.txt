@@ -1,3 +1,8 @@
+Version 2.0
+* rewrite for 3.3.3
+* new layout: random & call-to-arms bg at top
+* removed marks count (no use for it in 3.3.3)
+
 Version 1.4
 * display win statistics
 * wintergrasp marks and shards display

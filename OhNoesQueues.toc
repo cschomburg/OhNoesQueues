@@ -7,11 +7,9 @@
 ## X-Credits: veselu for his engagement in this mod
 ## Notes: Improved battleground joining.
 
-LibStub.lua
-LibCargPVP\LibCargPVP.lua
-core.lua
-layout.lua
+localization.lua
 
-infos\winStats.lua
-infos\marks.lua
-infos\xp.lua
+core.lua
+
+stats.lua
+button.lua
