@@ -9,6 +9,7 @@ Feature requests:
 local OhNoesQueues = CreateFrame("Frame", "OhNoesQueues", PVPBattlegroundFrame)
 
 local L = select(2, ...).ONQ_L
+setmetatable(L, {__index = function(self, k) return k end, __call = function(self, k) return self[k] end})
 
 local colors = {
 	["queued"] = { 1, 1, 0 },
@@ -59,10 +60,8 @@ end
 function OhNoesQueues:GetWinTotal(guid)
 	local info = data[guid]
 	if(not info or not info.won or not info.total) then return 0, 0 end
-	local total, won = GetStatistic(info.won), GetStatistic(info.total)
-	if(total == "--") then total = 0 else total = tonumber(total) or 0 end
-	if(won == "--") then won = 0 else won = tonumber(won) or 0 end
-	return won, total
+	local total, won = GetStatistic(info.total), GetStatistic(info.won)
+	return tonumber(won) or 0, tonumber(total) or 0
 end
 
 function OhNoesQueues:FormatUnit(value, unit)

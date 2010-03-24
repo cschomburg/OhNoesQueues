@@ -25,11 +25,6 @@ local function buttonClick(self, button)
 	end
 end
 
--- returns the plural of a measuring unit according to the value
-local function plural(value, unit)
-	return ("%d %s%s"):format(value, unit, value == 1 and "" or "s")
-end
-
 -- returns a combination of hours/minutes/seconds from a given number of miliseconds
 local function getDuration(time)
 	-- treating something that is returned as 0ms from GetBattlefieldEstimatedWaitTime
@@ -43,14 +38,17 @@ local function getDuration(time)
 	local min = mod(floor(time / 60), 60)
 	local hours = floor(time / 3600)
 
-	-- we return time in hours, minutes and seconds
 	if(hours > 0) then
-		return plural(hours, "hour" )..", "..plural(min, "minute" )..", "..plural(sec, "second")
-	elseif(min > 0) then -- we return time in minutes and seconds
-		return plural(min, "minute")..", "..plural(sec, "second")
-	else -- we return time in seconds
-		return plural(sec, "second")
+		return ("%d:%d:%d h"):format(hours, min, sec)
+	elseif(min > 0) then
+		return ("%d:%d min"):format(min, sec)
+	else
+		return ("%d s"):format(sec)
 	end
+end
+
+local function formatL(string, ...)
+	return string:gsub("%[(.-)%]", L):gsub("#(.-)#", "|cffffffff%1|r"):format(...)
 end
 
 local function buttonEnter(self)
@@ -62,43 +60,41 @@ local function buttonEnter(self)
 		-- adding expiration time
 		local time = GetBattlefieldPortExpiration(self.statusID)
 		if(time > 0) then
-			GameTooltip:AddLine("Expiration time: |cffffffff"..plural(time, "second").."|r")
+			GameTooltip:AddLine(formatL("[Expiration time]: #%d s#", time))
 		end
 
-		GameTooltip:AddLine("Left-click: |cffffffffAccept port|r")
+		GameTooltip:AddLine(formatL("[Left-click]: #[Accept port]#"))
 	end
 	if(status == "active") then
-		GameTooltip:AddLine("Left-click: |cffffffffOpen score board|r")
-		GameTooltip:AddLine("Right-click: |cffffffffLeave battleground|r")
+		GameTooltip:AddLine(formatL("[Left-click]: #[Open score board]#"))
+		GameTooltip:AddLine(formatL("[Right-click]: #[Leave battleground]#"))
 	elseif(status == "confirm" or status == "queued") then
 		-- adding to tooltip the estimated wait time
 		local time = GetBattlefieldEstimatedWaitTime(self.statusID)
 		if(time > 0) then
-			GameTooltip:AddLine("Estimated wait time: |cffffffff"..getDuration(time).."|r")
+			GameTooltip:AddLine(formatL("[Estimated wait time]: #%s#", getDuration(time)))
 		end
 
 		-- adding to tooltip the waited time
 		local time = GetBattlefieldTimeWaited(self.statusID)
 		if(time > 0) then
-			GameTooltip:AddLine("Waited time: |cffffffff"..getDuration(time).."|r")
+			GameTooltip:AddLine(formatL("[Waited time]: #%s#", getDuration(time)))
 		end
 
-		GameTooltip:AddLine("Right-click: |cffffffffLeave queue|r")
+		GameTooltip:AddLine(formatL("[Right-click]: #[Leave queue]#"))
 	else
-		GameTooltip:AddLine("Left-click: |cffffffffJoin as group or solo|r")
-		GameTooltip:AddLine("Right-click: |cffffffffJoin solo|r")
+		GameTooltip:AddLine(formatL("[Left-click]: #[Join as group or solo]#"))
+		GameTooltip:AddLine(formatL("[Right-click]: #[Join solo]#"))
 	end
 	GameTooltip:Show()
 end
 
-local function buttonLeave() GameTooltip:Hide() end
+local function tooltip_Hide() GameTooltip:Hide() end
 
-local function textEnter(self)
-	if(self.onEnter) then
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-		self.onEnter(text)
-		GameTooltip:Show()
-	end
+local function winStats_Show(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	GameTooltip:AddLine(("|cff00ff00%d|r : |cffff0000%d|r (%d)"):format(self.win, self.total-self.win, self.total), 1,1,1)
+	GameTooltip:Show()
 end
 
 local posID = 1
@@ -112,7 +108,7 @@ function OhNoesQueues:CreateButton(specialDir)
 
 	button:SetScript("OnClick", buttonClick)
 	button:SetScript("OnEnter", buttonEnter)
-	button:SetScript("OnLeave", buttonLeave)
+	button:SetScript("OnLeave", tooltip_Hide)
 	button.UpdateTooltip = buttonEnter
 
 	local icon = button:CreateTexture(nil, "ARTWORK")
@@ -160,6 +156,13 @@ function OhNoesQueues:CreateButton(specialDir)
 		text:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
 		button.text = text
 
+		local textInfo = CreateFrame("Frame", nil, button)
+		textInfo:EnableMouse(true)
+		textInfo:SetAllPoints(text)
+		textInfo:SetScript("OnEnter", winStats_Show)
+		textInfo:SetScript("OnLeave", tooltip_Hide)
+		button.textInfo = textInfo
+
 		button:SetPoint("TOPLEFT", 8+posID*45, -310)
 		text:SetPoint("TOP", button, "BOTTOM", 0, -10)
 
@@ -201,6 +204,7 @@ function OhNoesQueues:UpdateButton(button)
 		button.text:SetText(self:FormatUnit(winHonor, "honor").."\n"..self:FormatUnit(winArena, "arena"))
 	else
 		local win, total = self:GetWinTotal(guid)
+		button.textInfo.win, button.textInfo.total = win, total
 		if(total > 0) then
 			local r,g,b = ColorGradient(win/total, 1,0,0, 1,1,0, 0,1,0)
 			button.text:SetTextColor(r,g,b, 0.7)
