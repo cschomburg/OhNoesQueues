@@ -88,8 +88,8 @@ for k,v in pairs{
 end
 
 OhNoesQueues:SetAllPoints(PVPBattlegroundFrame)
---OhNoesQueues:SetFrameLevel(4)
 OhNoesQueues:RegisterEvent("PVPQUEUE_ANYWHERE_SHOW")
+OhNoesQueues:RegisterEvent("PVPQUEUE_ANYWHERE_UPDATE_AVAILABLE")
 OhNoesQueues:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
 
 local buttons
@@ -102,7 +102,7 @@ function OhNoesQueues:UPDATE_BATTLEFIELD_STATUS()
 	for i=1, MAX_BATTLEFIELD_QUEUES do
 		local status, name = GetBattlefieldStatus(i)
 		if(status ~= "none") then
-			for _, button in pairs(buttons) do
+			for k, button in pairs(buttons) do
 				if(button.name == name) then
 					button.status = status
 					button.statusID = i
@@ -120,6 +120,7 @@ local joinType, requested, reqTwo
 
 -- Win: Blizz' Events-naming
 function OhNoesQueues:PVPQUEUE_ANYWHERE_SHOW()
+	if(buttons) then self:UpdateButtons() end
 	if(not requested) then return end
 	JoinBattlefield(0, joinType == "group" and IsPartyLeader() and CanJoinBattlefieldAsGroup())
 	requested = nil
@@ -132,40 +133,62 @@ function OhNoesQueues:Join(type, id, idTwo)
 	RequestBattlegroundInstanceInfo(id)
 end
 
+function OhNoesQueues:JoinByName(type, name1, name2)
+	local id1, id2
+	for i=1, GetNumBattlegroundTypes() do
+		local name = GetBattlegroundInfo(i)
+		if(name1 == name) then id1 = i end
+		if(name2 == name) then id2 = i end
+	end
+	if(id1 or id2) then
+		OhNoesQueues:Join(type, id1 or id2, id1 and id2)
+	end
+end
+
 function OhNoesQueues:CreateButtons()
 	buttons = {}
 
 	buttons.random = self:CreateButton("left")
 	buttons.holiday = self:CreateButton("right")
 
-	for i=1, GetNumBattlegroundTypes() do
-		local name, canEnter, isHoliday, isRandom = GetBattlegroundInfo(i)
-		if(isRandom) then
-			buttons.random.id = i
-		else
-			if(isHoliday) then
-				buttons.holiday.id = i
-			end
-			local button = self:CreateButton()
-			button.id = i
-			buttons[name] = button
-		end
+	for i=2, GetNumBattlegroundTypes() do
+		buttons[i] = self:CreateButton()
+		self:SetButtonID(buttons[i], i)
 	end
 
-	OhNoesQueues:UPDATE_BATTLEFIELD_STATUS()
-	OhNoesQueues:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
+	self:UPDATE_BATTLEFIELD_STATUS()
+	self:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
 end
 
-OhNoesQueues:SetScript("OnShow", function(self)
-	if(not buttons) then
-		self:CreateButtons()
-		self:CreateStats()
-	end
-	self:UpdateStats()
+function OhNoesQueues:SetButtonID(button, id)
+	local guid = select(5, GetBattlegroundInfo(id))
+	if(button.guid == guid) then return end
+	button.guid = guid
+	button.id = id
+	self:UpdateButton(button)
+end
 
-	for k, button in pairs(buttons) do
-		self:UpdateButton(button)
+function OhNoesQueues:UpdateButtons()
+	if(not buttons) then self:CreateButtons() end
+
+	for i=1, GetNumBattlegroundTypes() do
+		local name, canEnter, isHoliday, isRandom, guid = GetBattlegroundInfo(i)
+		if(isRandom) then self:SetButtonID(buttons.random, i) end
+		if(isHoliday) then self:SetButtonID(buttons.holiday, i) end
+		if(buttons[i]) then self:SetButtonID(buttons[i], i) end
 	end
+end
+
+function OhNoesQueues:PrintBattlegrounds()
+	for i=1, GetNumBattlegroundTypes() do
+		local name, canEnter, isHoliday, isRandom, textureID = GetBattlegroundInfo(i)
+		debug(("%d. %s %s%s%s - %d"):format(i, name, canEnter and "" or "[D]", isHoliday and "[H]" or "", isRandom and "[R]" or "", textureID))
+	end
+end
+
+function OhNoesQueues:Update()
+	self:UpdateButtons()
+	self:UpdateStats()
 
 	PVPBATTLEGROUND_WINTERGRASPTIMER = format("%d |T%s:15:15:0:-5|t   %d |T%s:15:15:0:-5|t|n|cffffffff%%s|r",
 		GetItemCount(43589),
@@ -173,4 +196,6 @@ OhNoesQueues:SetScript("OnShow", function(self)
 		GetItemCount(43228),
 		GetItemIcon(43228)
 	)
-end)
+end
+
+OhNoesQueues:SetScript("OnShow", OhNoesQueues.Update)

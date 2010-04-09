@@ -179,7 +179,6 @@ function OhNoesQueues:UpdateButton(button)
 
 	button:Show()
 	button.name = name
-	button.guid = guid
 
 	button.icon:SetTexture(self:GetBattlegroundIcon(guid))
 

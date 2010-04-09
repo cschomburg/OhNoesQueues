@@ -42,6 +42,8 @@ function OhNoesQueues:CreateStats()
 end
 
 function OhNoesQueues:UpdateStats()
+	if(not stats.Header) then self:CreateStats() end
+
 	local todayKills, todayHonor = GetPVPSessionStats()
 	local yesterdayKills, yesterdayHonor = GetPVPYesterdayStats()
 	local lifeKills, rank = GetPVPLifetimeStats()

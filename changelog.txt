@@ -1,3 +1,7 @@
+Version 2.0.1
+* workaround for holiday ID-swapping problem
+* german localization! (thanks, Spellshaper!)
+
 Version 2.0
 * rewrite for 3.3.3
 * new layout: random & call-to-arms bg at top
