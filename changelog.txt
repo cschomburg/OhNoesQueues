@@ -1,3 +1,6 @@
+Version 2.0.2
+* and now localization works, stupid me :P
+
 Version 2.0.1
 * workaround for holiday ID-swapping problem
 * german localization! (thanks, Spellshaper!)

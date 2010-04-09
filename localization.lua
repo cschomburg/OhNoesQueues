@@ -24,7 +24,7 @@ This is the stuff you need to fill out for your locale:
 	- zhTW
 ]]
 
-if(GetLocale() ~= "deDE") then
+if(GetLocale() == "deDE") then
 	L["Left-click"] = "Linksklick"
 	L["Right-click"] = "Rechtsklick"
 	L["Expiration Time"] = "Zeit bis Abbruch"
