@@ -89,7 +89,6 @@ end
 
 OhNoesQueues:SetAllPoints(PVPBattlegroundFrame)
 OhNoesQueues:RegisterEvent("PVPQUEUE_ANYWHERE_SHOW")
-OhNoesQueues:RegisterEvent("PVPQUEUE_ANYWHERE_UPDATE_AVAILABLE")
 OhNoesQueues:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
 
 local buttons
@@ -161,15 +160,19 @@ function OhNoesQueues:CreateButtons()
 end
 
 function OhNoesQueues:SetButtonID(button, id)
+	button.id = id
 	local guid = select(5, GetBattlegroundInfo(id))
+	if(button.id) then button:Show() end
 	if(button.guid == guid) then return end
 	button.guid = guid
-	button.id = id
 	self:UpdateButton(button)
 end
 
 function OhNoesQueues:UpdateButtons()
 	if(not buttons) then self:CreateButtons() end
+
+	buttons.random:Hide()
+	buttons.holiday:Hide()
 
 	for i=1, GetNumBattlegroundTypes() do
 		local name, canEnter, isHoliday, isRandom, guid = GetBattlegroundInfo(i)
