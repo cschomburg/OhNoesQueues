@@ -6,6 +6,8 @@
 ## X-Website: http://www.xconstruct.net
 ## X-Credits: veselu for his engagement in this mod
 ## Notes: Improved battleground joining.
+## LoadManagers: AddonLoader
+## X-LoadOn-Execute: PVPBattlegroundFrame:HookScript("OnShow", function() if not OhNoesQueues then AddonLoader:LoadAddOn("OhNoesQueues") end end)
 
 localization.lua
 

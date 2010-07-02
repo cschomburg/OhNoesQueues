@@ -201,4 +201,15 @@ function OhNoesQueues:Update()
 	)
 end
 
-OhNoesQueues:SetScript("OnShow", OhNoesQueues.Update)
+
+OhNoesQueues:RegisterEvent("ADDON_LOADED")
+
+function OhNoesQueues:ADDON_LOADED(event, addon)
+	if(addon ~= "OhNoesQueues") then return end
+
+	self:SetScript("OnShow", self.Update)
+
+	if(self:IsVisible()) then
+		self:Update()
+	end
+end
