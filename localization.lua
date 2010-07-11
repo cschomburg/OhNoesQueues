@@ -1,4 +1,6 @@
+local addon, ns = ...
 local L = {}
+ns.ONQ_L = L
 
 --[[
 This is the stuff you need to fill out for your locale:
@@ -37,5 +39,3 @@ if(GetLocale() == "deDE") then
 	L["Join as group or solo"] = "Alleine oder als Gruppe beitreten"
 	L["Join solo"] = "Alleine beitreten"
 end
-
-select(2, ...).ONQ_L = L

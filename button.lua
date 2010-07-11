@@ -1,4 +1,5 @@
-local L = select(2, ...).ONQ_L
+local addon, ns = ...
+local OhNoesQueues, BG, L = ns.OhNoesQueues, ns.BG, ns.ONQ_L
 
 -- Why can't Blizz implement this function? :O
 local function ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
@@ -10,7 +11,8 @@ local function ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
 end
 
 local function buttonClick(self, button)
-	local status = self.status
+	local status = BG(self.name).status
+
 	if(status == "active") then
 		if(button=="RightButton") then
 			LeaveBattlefield()
@@ -19,9 +21,9 @@ local function buttonClick(self, button)
 			ToggleWorldStateScoreFrame()
 		end
 	elseif(status == "queued" or status == "confirm") then
-		AcceptBattlefieldPort(self.statusID, button ~= "RightButton" and 1)
+		AcceptBattlefieldPort(BG(self.name).statusID, button ~= "RightButton" and 1)
 	else
-		OhNoesQueues:Join(button == "LeftButton" and "group" or "solo", self.id)
+		BG(self.name):Join(button == "LeftButton" and "group")
 	end
 end
 
@@ -53,12 +55,13 @@ end
 
 local function buttonEnter(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-	GameTooltip:AddLine(self.name, 1,1,1)
+	GameTooltip:AddLine(self.localized, 1,1,1)
 	GameTooltip:AddLine(" ")
-	local status = self.status
+	local status, statusID = BG(self.name).status, BG(self.name).statusID
+
 	if(status == "confirm") then
-		-- adding expiration time
-		local time = GetBattlefieldPortExpiration(self.statusID)
+		-- display expiration time
+		local time = GetBattlefieldPortExpiration(statusID)
 		if(time > 0) then
 			GameTooltip:AddLine(formatL("[Expiration time]: #%d s#", time))
 		end
@@ -69,14 +72,14 @@ local function buttonEnter(self)
 		GameTooltip:AddLine(formatL("[Left-click]: #[Open score board]#"))
 		GameTooltip:AddLine(formatL("[Right-click]: #[Leave battleground]#"))
 	elseif(status == "confirm" or status == "queued") then
-		-- adding to tooltip the estimated wait time
-		local time = GetBattlefieldEstimatedWaitTime(self.statusID)
+		-- display estimated wait time
+		local time = GetBattlefieldEstimatedWaitTime(statusID)
 		if(time > 0) then
 			GameTooltip:AddLine(formatL("[Estimated wait time]: #%s#", getDuration(time)))
 		end
 
-		-- adding to tooltip the waited time
-		local time = GetBattlefieldTimeWaited(self.statusID)
+		-- display waited time
+		local time = GetBattlefieldTimeWaited(statusID)
 		if(time > 0) then
 			GameTooltip:AddLine(formatL("[Waited time]: #%s#", getDuration(time)))
 		end
@@ -92,18 +95,57 @@ end
 local function tooltip_Hide() GameTooltip:Hide() end
 
 local function winStats_Show(self)
+	local win, total = BG(self.button.name):GetWonTotal()
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-	GameTooltip:AddLine(("|cff00ff00%d|r : |cffff0000%d|r (%d)"):format(self.win, self.total-self.win, self.total), 1,1,1)
+	GameTooltip:AddLine(("|cff00ff00%d|r : |cffff0000%d|r (%d)"):format(win, total-win, total), 1,1,1)
 	GameTooltip:Show()
 end
 
+local function Button_Update(self)
+	local name, canEnter, isHoliday, isRandom, guid = BG(self.name):GetInfo()
+
+	self:Show()
+	self.localized = name
+
+	self.icon:SetTexture(BG(self.name).icon)
+
+	self:EnableMouse(canEnter)
+	self:SetAlpha(canEnter and 1 or 0.6)
+
+	local faded = not canEnter and 1
+	self.icon:SetDesaturated(faded)
+	self.border:SetDesaturated(faded)
+
+	if(self.special) then
+		local hasWin, winHonor, winArena, lossHonor, lossArena = BG(self.name):GetCurrencyBonus()
+		if(winHonor) then
+			if(hasWin) then
+				self.text:SetTextColor(1, 1, 1, 0.7)
+			else
+				self.text:SetTextColor(0, 1, 0, 0.7)
+			end
+			self.text:SetText(OhNoesQueues:FormatUnit(winHonor, "honor").."\n"..OhNoesQueues:FormatUnit(winArena, "arena"))
+			self.text:Show()
+		else
+			self.text:Hide()
+		end
+	else
+		local win, total = BG(self.name):GetWonTotal()
+		if(total > 0) then
+			local r,g,b = ColorGradient(win/total, 1,0,0, 1,1,0, 0,1,0)
+			self.text:SetTextColor(r,g,b, 0.7)
+			self.text:SetFormattedText("%d%%", win/total*100)
+		else
+			self.text:SetText("")
+		end
+	end
+end
+
 local posID = 1
-function OhNoesQueues:CreateButton(specialDir)
+function OhNoesQueues:CreateButton(name, specialDir)
 	local button = CreateFrame("Button", nil, self)
 
-	button:SetWidth(36)
-	button:SetHeight(36)
-
+	button:SetSize(36, 36)
 	button:RegisterForClicks("anyUp")
 
 	button:SetScript("OnClick", buttonClick)
@@ -136,6 +178,11 @@ function OhNoesQueues:CreateButton(specialDir)
 	button.border = border
 	button.color = color
 
+	button.Update = Button_Update
+
+	button.name = name
+	table.insert(self.buttons, button)
+
 	if(specialDir) then
 		local text = button:CreateFontString(nil, "OVERLAY")
 		text:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
@@ -143,6 +190,12 @@ function OhNoesQueues:CreateButton(specialDir)
 
 		button.special = true
 		button:SetScale(1.4)
+
+		if(name == "Random Battleground") then
+			BG:RegisterCallback("Currency_Updated_RandomBattleground", button, button.Update)
+		elseif(name == "Call to Arms") then
+			BG:RegisterCallback("Currency_Updated_CallToArms", button, button.Update)
+		end
 
 		if(specialDir == "left") then
 			button:SetPoint("TOPLEFT", 85, -150)
@@ -162,6 +215,7 @@ function OhNoesQueues:CreateButton(specialDir)
 		textInfo:SetScript("OnEnter", winStats_Show)
 		textInfo:SetScript("OnLeave", tooltip_Hide)
 		button.textInfo = textInfo
+		textInfo.button = button
 
 		button:SetPoint("TOPLEFT", 8+posID*45, -310)
 		text:SetPoint("TOP", button, "BOTTOM", 0, -10)
@@ -170,46 +224,4 @@ function OhNoesQueues:CreateButton(specialDir)
 	end
 
 	return button
-end
-
-function OhNoesQueues:UpdateButton(button)
-	if(not button.id) then return button:Hide() end
-
-	local name, canEnter, isHoliday, isRandom, guid = GetBattlegroundInfo(button.id)
-
-	button:Show()
-	button.name = name
-
-	button.icon:SetTexture(self:GetBattlegroundIcon(guid))
-
-	button:EnableMouse(canEnter)
-	button:SetAlpha(canEnter and 1 or 0.6)
-	if(canEnter) then
-		button.icon:SetDesaturated(nil)
-		button.border:SetDesaturated(nil)
-	else
-		button.icon:SetDesaturated(1)
-		button.border:SetDesaturated(1)
-	end
-
-	if(button.special) then
-		local func = isHoliday and GetHolidayBGHonorCurrencyBonuses or GetRandomBGHonorCurrencyBonuses
-		local hasWin, winHonor, winArena, lossHonor, lossArena = func()
-		if(hasWin) then
-			button.text:SetTextColor(1, 1, 1, 0.7)
-		else
-			button.text:SetTextColor(0, 1, 0, 0.7)
-		end
-		button.text:SetText(self:FormatUnit(winHonor, "honor").."\n"..self:FormatUnit(winArena, "arena"))
-	else
-		local win, total = self:GetWinTotal(guid)
-		button.textInfo.win, button.textInfo.total = win, total
-		if(total > 0) then
-			local r,g,b = ColorGradient(win/total, 1,0,0, 1,1,0, 0,1,0)
-			button.text:SetTextColor(r,g,b, 0.7)
-			button.text:SetFormattedText("%d%%", win/total*100)
-		else
-			button.text:SetText("")
-		end
-	end
 end

@@ -7,7 +7,11 @@
 ## X-Credits: veselu for his engagement in this mod
 ## Notes: Improved battleground joining.
 ## LoadManagers: AddonLoader
+## X-LoadOn-Always: true
 ## X-LoadOn-Execute: PVPBattlegroundFrame:HookScript("OnShow", function() if not OhNoesQueues then AddonLoader:LoadAddOn("OhNoesQueues") end end)
+
+libs\LibStub.lua
+libs\LibBattlegrounds-1.0\LibBattlegrounds-1.0.lua
 
 localization.lua
 
