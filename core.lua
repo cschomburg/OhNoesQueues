@@ -56,7 +56,7 @@ BG:RegisterCallback("Status_Updated", OhNoesQueues, function(self)
 	if(not buttons) then return end
 
 	for k, button in pairs(buttons) do
-		local status = BG(button.name).status
+		local status = BG(button.name) and BG(button.name).status
 
 		if(status and colors[status]) then
 			button.color:Show()

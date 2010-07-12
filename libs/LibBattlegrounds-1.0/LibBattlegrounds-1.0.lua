@@ -49,12 +49,18 @@ function lib:Get(arg1)
 end
 setmetatable(lib, {__call = lib.Get})
 
-
 local callbacks = {}
 
 function lib:RegisterCallback(event, key, func)
 	callbacks[event] = callbacks[event] or {}
 	callbacks[event][key] = func
+end
+
+function lib:PrintBattlegrounds()
+	for i=1, GetNumBattlegroundTypes() do
+		local name, canEnter, isHoliday, isRandom, textureID = GetBattlegroundInfo(i)
+		 print(("%d. %s %s%s%s - %d"):format(i, name, canEnter and "" or "[DIS]", isHoliday and "[CTA]" or "", isRandom and "[RND]" or "", textureID))
+	end
 end
 
 local function fire(event, ...)
@@ -111,10 +117,10 @@ function events:PVPQUEUE_ANYWHERE_SHOW()
 	local id = PVPBattlegroundFrame.selectedBG
 	if(not id) then return end
 
-	if(id and id == byName["Call to Arms"].id) then
+	if(byName["Call to Arms"] and id == byName["Call to Arms"].id) then
 		cta_hasWin, cta_winHonor, cta_winArena, cta_lossHonor, cta_lossArena = GetHolidayBGHonorCurrencyBonuses()
 		fire("Currency_Updated_CallToArms")
-	elseif(id and id == byName["Random Battleground"].id) then
+	elseif(byName["Random Battleground"] and id == byName["Random Battleground"].id) then
 		rnd_hasWin, rnd_winHonor, rnd_winArena, rnd_lossHonor, rnd_lossArena = GetRandomBGHonorCurrencyBonuses()
 		fire("Currency_Updated_RandomBattleground")
 	end

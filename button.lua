@@ -102,6 +102,12 @@ local function winStats_Show(self)
 end
 
 local function Button_Update(self)
+	if(BG(self.name)) then
+		self:Show()
+	else
+		return self:Hide()
+	end
+
 	local name, canEnter, isHoliday, isRandom, guid = BG(self.name):GetInfo()
 
 	self:Show()
