@@ -1,3 +1,8 @@
+Version 2.1
+* random-bg/call to arms currency bonuses now update with click on icon (that's the best I can do :/)
+* AddonLoader support (loads on opening the panel)
+- almost complete rewrite based on new library, in preparation for Cataclysm
+
 Version 2.0.3
 * fixed error with PVPQUEUE_ANYWHERE_UPDATE
 * fixed holiday-bg-id (come on, this time!)
