@@ -1,13 +1,12 @@
 ## Interface: 30300
 ## Title: OhNoesQueues
 ## Author: Cargor
-## Version: 2.1
+## Version: 2.1.1
 ## X-eMail: xconstruct@gmail.com
 ## X-Website: http://www.xconstruct.net
 ## X-Credits: veselu for his work in this mod
 ## Notes: Improved battleground joining.
 ## LoadManagers: AddonLoader
-## X-LoadOn-Always: true
 ## X-LoadOn-Execute: PVPBattlegroundFrame:HookScript("OnShow", function() if not OhNoesQueues then AddonLoader:LoadAddOn("OhNoesQueues") end end)
 
 libs\LibStub.lua

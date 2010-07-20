@@ -1,3 +1,6 @@
+Version 2.1.1
+* workaround for the first login where the battleground data is invalid
+
 Version 2.1
 * random-bg/call to arms currency bonuses now update with click on icon (that's the best I can do :/)
 * AddonLoader support (loads on opening the panel)

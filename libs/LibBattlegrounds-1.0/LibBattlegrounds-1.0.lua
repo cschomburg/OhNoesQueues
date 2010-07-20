@@ -99,11 +99,13 @@ function events:PVPQUEUE_ANYWHERE_SHOW()
 
 	for i=1, GetNumBattlegroundTypes() do
 		local name, canEnter, isHoliday, isRandom, guid = GetBattlegroundInfo(i)
-		local bg = byGUID[guid]
-		bg.id = i
+		if(guid and byGUID[guid]) then
+			local bg = byGUID[guid]
+			bg.id = i
 
-		byLocale[name] = bg
-		if(isHoliday) then cta_new = bg end
+			byLocale[name] = bg
+			if(isHoliday) then cta_new = bg end
+		end
 	end
 	fire("IDs_Updated")
 
