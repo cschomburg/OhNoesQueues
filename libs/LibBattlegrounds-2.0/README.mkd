@@ -1,0 +1,119 @@
+LibBattlegrounds-2.0
+====================
+
+A library to handle joining and updating of battlegrounds and world pvp areas, created
+because of Blizz' inconsistent API and lack of truly global, static IDs.
+It provides simple access to battleground data via non-localized names and GUIDs as well
+as additional info such as win-statistics and icons.
+
+Note the various ID's explained at the bottom of this document.
+
+*Licensed under the open-source GPL 2*
+
+Preamble about IDs
+------------------
+Battlegrounds have a number of different IDs for various things, but no real GUID, so I implemented my own. Here is a list of all ones currently in use:
+
+*	pvpID: an id for battlegrounds OR world pvp areas, dynamic
+*	uid: the mapDescription/textureID of battlegrounds OR the world pvp areas, static
+*	guid: positive uid for battlegrounds, negative uid for world pvp areas
+*	statusID: the index in the queue of battlegrounds OR world pvp areas, dynamic
+
+pvpID, statusID and uid are *not unique* between battlegrounds and world pvp areas!
+'dynamic' means it changes at run-time, static ones are fixed.
+
+Callbacks
+---------
+
+*	Status_Updated
+*	IDs_Updated
+*	CallToArms_Changed
+*	Currency_Update_CallToArms
+*	Currency_Update_RandomBattleground_
+
+Important Library API
+---------------------
+
+### lib = LibStub("LibBattlegrounds-2.0") ###
+Fetch the library
+
+### bg = lib:Get(arg1) ###
+Fetches a Battleground-object from the database.
+arg1 can be be:
+
+*	the localized name
+*	the english name
+*	the GUID
+*	the object itself (for simplicity)
+
+### lib:Join(bg [, type]) ###
+Joins a battleground with the specified type/mode.
+
+*	bg: a battleground name/guid/object
+*	type: "group", "wargame" or nil (solo)
+
+### lib:JoinWhenReady(bg [, type]) ###
+Joins a battleground as soon as it becomes available for queueing.
+See lib:Join() for parameters
+
+### lib:RegisterCallback(event, key, func) ###
+Registers a callback for various internal events.
+Calls func(key, event, ...).
+
+*	event: the internal event
+*	key: a custom identification value (probably a frame/table)
+*	func: the function to be called
+
+Battleground Class
+------------------
+
+### Battleground:Join(type)
+Joins the battleground.
+
+*	type: see lib:Join()
+
+### Battleground:JoinWhenReady(type)
+Joins the battleground as soon as it becomes available for queueing.
+
+*	type: see lib:Join()
+
+### ... = Battleground:GetInfo() ###
+Returns localizedName, canQueue, canEnter, isActive, startTime.
+
+### won, total = Battleground:GetWonTotal() ###
+Returns the amount of won vs. total games, based on achievement statistics.
+
+### icon = Battleground:GetIcon() ###
+Gets the default icon texture path for the battleground.
+
+### status, statusID = Battleground:GetQueueStatus() ###
+Returns the queue status the battleground
+
+### ... = Battleground:GetCurrencyBonus()
+Returns the currency bonuses for the selected battleground if it is a Random Battleground or Call to Arms. Arguments are hasWin, winHonor, winArena, lossHonor, lossArena
+
+Internal Library API
+--------------------
+
+### lib:PrintBattlegrounds()
+Prints all battlegrounds and their data in the chatframe. For debugging.
+
+### guid = lib:ToGUID(pvpID, isWorld)
+Transforms a pvpID/isWorld pair into a guid
+
+### pvpID, isWorld = lib:FromGUID(guid)
+Transforms a guid into a pvpID/isWorld pair
+
+### bg = lib:GetSelectedBattleground() ###
+Gets the currently selected battleground in the PVPFrame
+
+### lib:SetSelectedBattleground(arg1) ###
+Sets the selected battleground in the PVPFrame.
+
+*	arg1: a battleground name/guid/object
+
+### lib:UpdateBattlegroundStatus() ###
+Updates the status-info of all battlegrounds
+
+### lib:UpdateBattlegrounds() ###
+Updates all battlegrounds

@@ -1,116 +1,111 @@
---[[
-Feature requests:
-- movable join bar
-- total honor
-- default tab
-- localization
-]]
-
 local addon, ns = ...
 
-local OhNoesQueues = CreateFrame("Frame", "OhNoesQueues", PVPBattlegroundFrame)
-ns.OhNoesQueues = OhNoesQueues
+local LBG = LibStub("LibBattlegrounds-2.0")
 
-local BG = LibStub("LibBattlegrounds-1.0")
-ns.BG = BG
+local OhNoesQueues = CreateFrame("Frame", "OhNoesQueues", PVPFrame)
 
-local L = ns.ONQ_L
-setmetatable(L, {__index = function(self, k) return k end, __call = function(self, k) return self[k] end})
+function OhNoesQueues:Init()
+	self:Hide()
+	self:SetPoint("TOPLEFT", 8, -64)
+	self:SetPoint("BOTTOMRIGHT", -11, 6)
 
-local colors = {
-	["queued"] = { 1, 1, 0 },
-	["confirm"] = { 1, 0, 0 },
-	["active"] = { 0, 1, 0 },
-}
+	local width, height = self:GetSize()
 
-local modules = {}
+	for anchor, pos in pairs{
+			TOPLEFT = "TopLeft",			-- It would be such much easier
+			BOTTOMLEFT = "BotLeft",			-- if we just could write
+			TOPRIGHT = "TopRight",			--  anchor = pos:upper()
+			BOTTOMRIGHT = "BotRight"		-- Blizz :/
+	} do
+		local tex = OhNoesQueues:CreateTexture(nil, "BACKGROUND")
+		tex:SetTexture("Interface\\QuestFrame\\UI-QuestLog-Empty-"..pos)
+		tex:SetPoint(anchor)
+		tex:SetVertexColor(0.7, 0.7, 0.7)
 
-function OhNoesQueues:FormatUnit(value, unit)
-	unit = (unit == "arena" and "Interface\\PVPFrame\\PVP-ArenaPoints-Icon") or "Interface\\PVPFrame\\PVP-Currency-"..UnitFactionGroup("player")
-
-	return ("%d |T%s:16:16:0:0|t"):format(value, unit)
-end
-
-
--- Make room for the unbelievable
-
-for k,v in pairs{
-	PVPBattlegroundFrameTypeScrollFrame,
-	PVPBattlegroundFrameInfoScrollFrame,
-	PVPBattlegroundFrameNameHeader,
-	BattlegroundType1,
-	BattlegroundType2,
-	BattlegroundType3,
-	BattlegroundType4,
-	BattlegroundType5,
-} do
-	v:Hide()
-	v.Show = v.Hide
-end
-
-OhNoesQueues:SetAllPoints(PVPBattlegroundFrame)
-
-local buttons
-
-BG:RegisterCallback("Status_Updated", OhNoesQueues, function(self)
-	if(not buttons) then return end
-
-	for k, button in pairs(buttons) do
-		local status = BG(button.name) and BG(button.name).status
-
-		if(status and colors[status]) then
-			button.color:Show()
-			button.color:SetVertexColor(unpack(colors[status]))
+		local tcRight, tcBottom
+		if(pos:find("Left")) then
+			tex:SetWidth(256/302*width)
+			tcRight = 1
 		else
-			button.color:Hide()
+			tex:SetWidth(46/302*width)
+			tcRight = 0.71875
 		end
-	end
-end)
 
-function OhNoesQueues:RegisterModule(key, module)
-	modules[key] = module or key
+		if(pos:find("Top")) then
+			tex:SetHeight(256/356*height)
+			tcBottom = 1
+		else
+			tex:SetHeight(106/356*height)
+			tcBottom = 0.828125
+		end
+
+		tex:SetTexCoord(0, tcRight, 0, tcBottom)
+	end
+
+	local tabID = 4; while(_G["PVPFrameTab"..tabID]) do tabID = tabID+1 end
+	local tab = CreateFrame("Button", "PVPFrameTab"..tabID, PVPFrame, "CharacterFrameTabButtonTemplate")
+	PVPFrame.numTabs = tabID
+	PVPFrame["panel"..tabID] = OhNoesQueues
+	tab:SetID(tabID)
+	tab:SetText("ONQ")
+	tab:SetScript("OnClick", PVPFrameTab1:GetScript("OnClick"))
+	tab:SetPoint(PVPFrameTab1:GetPoint())
+	PVPFrameTab1:SetPoint("LEFT", tab, "RIGHT", -15, 0)
+	tab:GetScript("OnShow")(tab)
+
+	hooksecurefunc("PVPFrame_TabClicked", function(self)
+		if(self:GetID() ~= tabID) then return OhNoesQueues:Hide() end
+
+		OhNoesQueues:Show()
+		PVPFrameLeftButton:Hide()
+		PVPFrameTypeLable:SetText(HONOR)
+		PVPFrameTypeLable:SetPoint("TOPRIGHT", -180, -38)
+		PVPFrameConquestBar:Hide()
+		PVPFrameTypeIcon:SetTexture("Interface\\PVPFrame\\PVPCurrency-Honor-"..UnitFactionGroup("player"))
+		PVPFrame_UpdateCurrency(self, select(2, GetCurrencyInfo(HONOR_CURRENCY)))
+	end)
+	PVPFrame_TabClicked(tab)
+
+	local random = self.Buttons:Create("Random Battleground")
+	random:SetScale(1.2)
+	random:SetPoint("TOPRIGHT", self, "TOP", -15, -25)
+
+	local cta = self.Buttons:Create("Call to Arms")
+	cta:SetScale(1.2)
+	cta:SetPoint("TOPLEFT", self, "TOP", 15, -25)
+
+	local wg = self.Buttons:Create("Wintergrasp")
+	wg:SetScale(1.2)
+	wg:SetPoint("TOPRIGHT", self, "TOP", -15, -85)
+
+	local tb = self.Buttons:Create("Tol Barad")
+	tb:SetScale(1.2)
+	tb:SetPoint("TOPLEFT", self, "TOP", 15, -85)
+
+	for i, bgName in pairs{
+		"Warsong Gulch", "Arathi Basin", "Alterac Valley", "Eye of the Storm",
+		"Strand of the Ancients", "Isle of Conquest", "Twin Peaks", "The Battle for Gilneas",
+	} do
+		self.Buttons:Create(bgName):SetPoint("BOTTOMLEFT",
+			((i-1) % 4) * 65 + 45,
+			math.floor((i-1)/4) * -65 + 120.
+		)
+	end
 end
 
+local init = true
 function OhNoesQueues:Update()
-	if(not buttons) then
-		buttons = {}
-		self.buttons = buttons
-
-		self:CreateButton("Random Battleground", "left")
-		self:CreateButton("Call to Arms", "right")
-
-		self:CreateButton("Isle of Conquest")
-		self:CreateButton("Warsong Gulch")
-		self:CreateButton("Arathi Basin")
-		self:CreateButton("Alterac Valley")
-		self:CreateButton("Eye of the Storm")
-		self:CreateButton("Strand of the Ancients")
-	end
-
-	for k, button in pairs(buttons) do
-		button:Update()
-	end
-
-	PVPBATTLEGROUND_WINTERGRASPTIMER = format("%d |T%s:15:15:0:-5|t   %d |T%s:15:15:0:-5|t|n|cffffffff%%s|r",
-		GetItemCount(43589),
-		GetItemIcon(43589),
-		GetItemCount(43228),
-		GetItemIcon(43228)
-	)
-
-	for key, module in pairs(modules) do
-		if(module.Update) then
-			module:Update()
-		end
+	if(init) then
+		init = nil
+		self:Init()
 	end
 end
 
 OhNoesQueues:RegisterEvent("ADDON_LOADED")
-OhNoesQueues:SetScript("OnEvent", function(self, event, addon)
-	if(addon ~= "OhNoesQueues") then return end
+OhNoesQueues:SetScript("OnEvent", function(self, event, name)
+	if(name ~= addon) then return end
 
 	self:SetScript("OnShow", self.Update)
-
 	if(self:IsVisible()) then
 		self:Update()
 	end
