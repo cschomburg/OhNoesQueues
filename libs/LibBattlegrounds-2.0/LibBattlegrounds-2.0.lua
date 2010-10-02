@@ -11,14 +11,12 @@ local byGUID, byName, byLocale
 local cta_hasWin, cta_winHonor, cta_winArena, cta_lossHonor, cta_lossArena
 local rnd_hasWin, rnd_winHonor, rnd_winArena, rnd_lossHonor, rnd_lossArena
 
-
---[[############################################
-	Class: Battleground
-		Holds all info related to a battleground
-##############################################]]
-
 local Battleground = {}
 Battleground.__index = Battleground
+
+--[[############################################
+	Generic Battleground Info
+##############################################]]
 
 function Battleground:GetInfo()
 	local uid, localizedName, isActive, canQueue, startTime, canEnter, isHoliday, isRandom
@@ -51,36 +49,79 @@ function Battleground:GetCurrencyBonus()
 	end
 end
 
+
 --[[############################################
-	Joining battlegrounds
+	Interacting with battlegrounds
 ##############################################]]
 
-local joinQueue = {}
+local joinQueue, readyQueue, nextUpdate = {}, {}, 0
+local updater = CreateFrame"Frame"
 
-function lib:Join(bg, type)
-	bg = self:Get(bg)
-	bg:Join(type)
+function Battleground:Join(type, noWait)
+	self.joinType = type or true
+
+	if(noWait) then
+		joinQueue[self] = true
+		lib:CheckJoin()
+	else
+		readyQueue[self] = true
+		nextUpdate = 0
+		updater:Show()
+	end
+
+	lib:UpdateStatus()
 end
 
-function Battleground:Join(type)
-	joinQueue[self] = type or true
-	lib:CheckJoin()
+function Battleground:Leave()
+	local status, statusID = self:GetQueueStatus()
+	self.joinType = nil
+
+	if(self.isWorld) then
+		if(status == "wait") then
+			readyQueue[self] = nil
+			lib:UpdateStatus()
+		elseif(status == "queued") then
+			BattlefieldMgrExitRequest(self.statusID)
+		end
+	else
+		if(status == "wait") then
+			readyQueue[self] = nil
+		elseif(status == "queued" or status == "confirm") then
+			AcceptBattlefieldPort(statusID, 0)
+		elseif(status == "active") then
+			LeaveBattlefield()
+		end
+	end
+end
+
+function Battleground:Enter()
+	local status, statusID = self:GetQueueStatus()
+	if(status == "confirm") then
+		if(self.isWorld) then
+			BattlefieldMgrEntryInviteResponse(statusID)
+		else
+			AcceptBattlefieldPort(statusID, 1)
+		end
+	end
 end
 
 function lib:CheckJoin()
 	local selectedBG = self:GetSelectedBattleground()
 
-	for bg, joinType in pairs(joinQueue) do
+	for bg in pairs(joinQueue) do
 		if(bg.isWorld) then
 			joinQueue[bg] = nil
 			BattlefieldMgrQueueRequest(bg.uid)
+			bg.joinType = nil
 		elseif(bg == selectedBG) then
 			joinQueue[bg] = nil
+
 			if(joinType == "wargame") then
 				StartWarGame()
 			else
-				JoinBattlefield(0, joinType == "group" and IsPartyLeader() and CanJoinBattlefieldAsGroup())
+				JoinBattlefield(0, self.joinType == "group" and IsPartyLeader() and CanJoinBattlefieldAsGroup())
 			end
+			bg.joinType = nil
 		end
 	end
 
@@ -90,41 +131,21 @@ function lib:CheckJoin()
 	end
 end
 
-
---[[############################################
-	Join when queue is ready
-		(or 'QueueForTheQueue' as I call it =D)
-##############################################]]
-
-local readyQueue, nextUpdate = {}, 0
-local updater = CreateFrame"Frame"
-
-function lib:JoinWhenReady(bg, type)
-	bg = self:Get(bg)
-	bg:JoinWhenReady(type)
-end
-
-function Battleground:JoinWhenReady(type)
-	readyQueue[self] = joinType or true
-	nextUpdate = 0
-	updater:Show()
-end
-
 updater:Hide()
 updater:SetScript("OnUpdate", function(self, elapsed)
 	nextUpdate = nextUpdate - elapsed
 	if(nextUpdate > 0) then return end
 	nextUpdate = nil
 
-	for bg, joinType in pairs(readyQueue) do
+	for bg in pairs(readyQueue) do
 		local localizedName, canQueue, canEnter, isActive, startTime = bg:GetInfo()
 		local newTime
 
 		if(canQueue) then
 			readyQueue[bg] = nil
-			lib:Join(bg, joinType)
+			bg:Join(bg.joinType, true)
 		elseif(startTime) then
-			newTime = startTime-bg.queueReady
+			newTime = startTime-(bg.queueReady or 0)
 			if(newTime <= 0) then
 				newTime = 1
 			end
@@ -141,7 +162,6 @@ updater:SetScript("OnUpdate", function(self, elapsed)
 		updater:Hide()
 	end
 end)
-
 
 
 --[[############################################
@@ -187,13 +207,6 @@ function lib:Get(arg1)
 		or (type(arg1) == "table" and arg1.__index == Battleground and arg1)
 end
 
-function lib:PrintBattlegrounds()
-	for i=1, GetNumBattlegroundTypes() do
-		local name, canEnter, isHoliday, isRandom, uid = GetBattlegroundInfo(i)
-		 print(("%d. %s %s%s%s - %d"):format(i, name, canEnter and "" or "[DIS]", isHoliday and "[CTA]" or "", isRandom and "[RND]" or "", uid))
-	end
-end
-
 function lib:GetSelectedBattleground()
 	local pvpID = PVPHonorFrame.selectedPvpID
 	local isWorld = PVPHonorFrame.selectedIsWorldPvp and true or nil
@@ -217,9 +230,9 @@ function lib:SetSelectedBattleground(arg1)
 	end
 end
 
-function lib:UpdateBattlegroundStatus()
+function lib:UpdateStatus()
 	for name, bg in pairs(byName) do
-		bg.status = nil
+		bg.status = bg.joinType and "wait" or nil
 		bg.statusID = nil
 	end
 
@@ -245,7 +258,16 @@ function lib:UpdateBattlegroundStatus()
 	fire("Status_Updated")	
 end
 
-hooksecurefunc("PVP_UpdateStatus", function() lib:UpdateBattlegroundStatus() end)
+local events = CreateFrame("Frame")
+events:SetScript("OnEvent", function() lib:UpdateStatus() end)
+events:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
+events:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
+events:RegisterEvent("BATTLEFIELD_MGR_QUEUE_REQUEST_RESPONSE")
+events:RegisterEvent("BATTLEFIELD_MGR_QUEUE_INVITE")
+events:RegisterEvent("BATTLEFIELD_MGR_ENTRY_INVITE")
+events:RegisterEvent("BATTLEFIELD_MGR_EJECT_PENDING")
+events:RegisterEvent("BATTLEFIELD_MGR_EJECTED")
+events:RegisterEvent("BATTLEFIELD_MGR_ENTERED")
 
 function lib:UpdateBattlegrounds()
 	local cta_old, cta_new = byName["Call to Arms"]
@@ -341,7 +363,7 @@ byGUID, byLocale, byName = {}, {}, {
 		uid = 30,
 		total = 4096,
 		won = 4097,
-		icon = "",
+		icon = "Interface\\Icons\\Achievement_Zone_BoreanTundra_01",
 	},
 	["Random Battleground"] = {
 		uid = 32,
@@ -357,7 +379,7 @@ byGUID, byLocale, byName = {}, {}, {
 		uid = 120,
 		total = 5236,
 		win = 5237,
-		icon = "Interface\\Icons\\Achievement_Zone_Silverpine_01",
+		icon = "Interface\\Icons\\Achievement_Battleground_BattleForGilneas",
 	},
 
 	["Wintergrasp"] = {
@@ -385,4 +407,4 @@ for name, bg in pairs(byName) do
 end
 
 lib:UpdateBattlegrounds()
-lib:UpdateBattlegroundStatus()
+lib:UpdateStatus()

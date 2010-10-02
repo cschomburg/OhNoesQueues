@@ -46,16 +46,6 @@ arg1 can be be:
 *	the GUID
 *	the object itself (for simplicity)
 
-### lib:Join(bg [, type]) ###
-Joins a battleground with the specified type/mode.
-
-*	bg: a battleground name/guid/object
-*	type: "group", "wargame" or nil (solo)
-
-### lib:JoinWhenReady(bg [, type]) ###
-Joins a battleground as soon as it becomes available for queueing.
-See lib:Join() for parameters
-
 ### lib:RegisterCallback(event, key, func) ###
 Registers a callback for various internal events.
 Calls func(key, event, ...).
@@ -67,15 +57,17 @@ Calls func(key, event, ...).
 Battleground Class
 ------------------
 
-### Battleground:Join(type)
-Joins the battleground.
+### Battleground:Join( [type, noWait] )
+Queues for a battleground or waits until you can (world pvp areas).
 
-*	type: see lib:Join()
+*	type: either "group", "wargame" or nil (for solo)
+*	noWait: when true, don't wait, only try once
 
-### Battleground:JoinWhenReady(type)
-Joins the battleground as soon as it becomes available for queueing.
+### Battleground:Leave() ###
+Leaves the queue or the active battleground.
 
-*	type: see lib:Join()
+### Battleground:Enter() ###
+Enters a battleground if you can.
 
 ### ... = Battleground:GetInfo() ###
 Returns localizedName, canQueue, canEnter, isActive, startTime.
@@ -84,10 +76,13 @@ Returns localizedName, canQueue, canEnter, isActive, startTime.
 Returns the amount of won vs. total games, based on achievement statistics.
 
 ### icon = Battleground:GetIcon() ###
-Gets the default icon texture path for the battleground.
+Gets the default icon texture path for the battleground (custom, not official).
 
 ### status, statusID = Battleground:GetQueueStatus() ###
 Returns the queue status the battleground
+
+*	status: either "join", "queued", "confirm", "active" or nil
+*	statusID: the number in the queue if any
 
 ### ... = Battleground:GetCurrencyBonus()
 Returns the currency bonuses for the selected battleground if it is a Random Battleground or Call to Arms. Arguments are hasWin, winHonor, winArena, lossHonor, lossArena
@@ -112,7 +107,7 @@ Sets the selected battleground in the PVPFrame.
 
 *	arg1: a battleground name/guid/object
 
-### lib:UpdateBattlegroundStatus() ###
+### lib:UpdateStatus() ###
 Updates the status-info of all battlegrounds
 
 ### lib:UpdateBattlegrounds() ###
