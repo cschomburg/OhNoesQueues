@@ -116,10 +116,10 @@ function lib:CheckJoin()
 		elseif(bg == selectedBG) then
 			joinQueue[bg] = nil
 
-			if(joinType == "wargame") then
+			if(bg.joinType == "wargame") then
 				StartWarGame()
 			else
-				JoinBattlefield(0, self.joinType == "group" and IsPartyLeader() and CanJoinBattlefieldAsGroup())
+				JoinBattlefield(0, bg.joinType == "group" and IsPartyLeader())
 			end
 			bg.joinType = nil
 		end

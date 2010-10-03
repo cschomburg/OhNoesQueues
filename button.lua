@@ -70,7 +70,7 @@ local function Button_OnClick(self, button)
 			self.bg:Enter()
 		end
 	else
-		self.bg:Join(button == "LeftButton" and "group")
+		self.bg:Join(OhNoesQueues.joinType)
 	end
 end
 
@@ -110,6 +110,8 @@ function Buttons:Create(bgName)
 	button.Update = Button_Update
 
 	button:SetScript("OnClick", Button_OnClick)
+	button:SetScript("OnEnter", OhNoesQueues.Stats.Show)
+	button:SetScript("OnLeave", OhNoesQueues.Stats.Hide)
 
 	button:SetBattleground(bgName)
 	LBG:RegisterCallback("Status_Updated", button, Button_UpdateStatus)

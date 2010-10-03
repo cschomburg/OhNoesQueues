@@ -14,3 +14,4 @@ libs\LibBattlegrounds-2.0\LibBattlegrounds-2.0.lua
 
 core.lua
 button.lua
+stats.lua
