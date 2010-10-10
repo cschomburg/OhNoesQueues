@@ -1,7 +1,7 @@
 ## Interface: 40000
 ## Title: OhNoesQueues
 ## Author: Cargor
-## Version: 3.0
+## Version: 3.0-beta
 ## X-eMail: me@xconstruct.net
 ## X-Website: http://xconstruct.net
 ## X-Credits: veselu for his help in this mod
