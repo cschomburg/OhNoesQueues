@@ -1,3 +1,10 @@
+Version 3.0-beta
+* rewrite for Cataclysm
+* new layout and icons
+* can handle world pvp areas (Wintergrasp, Tol Barad)
+* queue for queue (queue for world pvp areas at any time)
+- resides in its own tab
+
 Version 2.1.1
 * workaround for the first login where the battleground data is invalid
 
