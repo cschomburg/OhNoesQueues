@@ -70,6 +70,8 @@ function OhNoesQueues:Init()
 		if(self:GetID() ~= tabID) then return OhNoesQueues:Hide() end
 
 		OhNoesQueues:Show()
+		PVPFrame.lastSelectedTab = self
+		PVPFrameLowLevelFrame:Hide()
 		PVPFrameLeftButton:Hide()
 		PVPFrameTypeLabel:SetText(HONOR)
 		PVPFrameTypeLabel:SetPoint("TOPRIGHT", -180, -38)

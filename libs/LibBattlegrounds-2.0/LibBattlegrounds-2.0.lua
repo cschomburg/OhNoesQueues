@@ -369,13 +369,13 @@ byGUID, byLocale, byName = {}, {}, {
 		uid = 32,
 		icon = "Interface\\Icons\\INV_Misc_QuestionMark",
 	},
-	["Twin Peaks"] = {
+	["## Twin Peaks"] = {
 		uid = 108,
 		total = 5232,
 		win = 5233,
 		icon = "Interface\\Icons\\Achievement_Zone_TwilightHighlands",
 	},
-	["The Battle for Gilneas"] = {
+	["## The Battle for Gilneas"] = {
 		uid = 120,
 		total = 5236,
 		win = 5237,
@@ -390,7 +390,7 @@ byGUID, byLocale, byName = {}, {}, {
 		queueReady = 15*60,
 		icon = "Interface\\Icons\\Achievement_Zone_DragonBlight_09",
 	},
-	["Tol Barad"] = {
+	["## Tol Barad"] = {
 		uid = 21,
 		icon = "Interface\\Icons\\Achievement_Zone_TolBarad",
 		isWorld = true,
