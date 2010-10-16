@@ -1,3 +1,6 @@
+Version 3.0.1
+* fixed issues with live client
+
 Version 3.0-beta
 * rewrite for Cataclysm
 * new layout and icons
