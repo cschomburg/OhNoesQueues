@@ -263,7 +263,6 @@ end
 local events = CreateFrame("Frame")
 events:SetScript("OnEvent", function() lib:UpdateStatus() end)
 events:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
-events:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
 events:RegisterEvent("BATTLEFIELD_MGR_QUEUE_REQUEST_RESPONSE")
 events:RegisterEvent("BATTLEFIELD_MGR_QUEUE_INVITE")
 events:RegisterEvent("BATTLEFIELD_MGR_ENTRY_INVITE")
