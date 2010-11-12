@@ -11,6 +11,7 @@ function OhNoesQueues:Init()
 	self:RegisterEvent("PARTY_LEADER_CHANGED")
 	self:RegisterEvent("RAID_ROSTER_UPDATE")
 
+	PVPFrame:UnregisterEvent("BATTLEFIELDS_CLOSED")
 	--[[
 		Main Layout
 	]]
