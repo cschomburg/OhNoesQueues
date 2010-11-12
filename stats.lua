@@ -1,6 +1,17 @@
 local addon, ns = ...
 local LBG = LibStub("LibBattlegrounds-2.0")
 
+-- Why can't Blizz implement this function? :O
+local function ColorGradient(perc, r1, g1, b1, r2, g2, b2, r3, g3, b3)
+	if perc >= 1 then return r3, g3, b3 elseif perc <= 0 then return r1, g1, b1 end
+
+	local segment, relperc = math.modf(perc*2)
+	if segment == 1 then r1, g1, b1, r2, g2, b2 = r2, g2, b2, r3, g3, b3 end
+	return r1 + (r2-r1)*relperc, g1 + (g2-g1)*relperc, b1 + (b2-b1)*relperc
+end
+
+
+
 local Stats = {}
 OhNoesQueues.Stats = Stats
 
@@ -42,11 +53,32 @@ end
 local function Display_Update(self)
 	if(not self.bg) then return end
 	local bg = self.bg
+	local height = 0
 
 	local localized = bg:GetInfo()
 	local status = bg:GetQueueStatus()
 	status = status and statusTexts[status]
 	self.caption:SetText(status and ("%s (%s)"):format(localized, status) or localized)
+	height = height + 40
+
+	local win, total = bg:GetWonTotal()
+	if(total and total > 0) then
+		height = height + 30
+		display.wins:Show()
+		display.losses:Show()
+		display.wintotal:Show()
+
+		display.wins:SetText(win)
+		display.losses:SetText(total - win)
+		local r,g,b = ColorGradient(win/total, 1,0,0, 1,1,0, 0,1,0)
+		display.wintotal:SetFormattedText("|cff%2x%2x%2x%.0f%%|r of %d", r*255, g*255, b*255, win/total*100, total)
+	else
+		display.wins:Hide()
+		display.losses:Hide()
+		display.wintotal:Hide()
+	end
+
+	display:SetHeight(height)
 end
 
 function Stats:Create()
@@ -55,14 +87,28 @@ function Stats:Create()
 	local display = CreateFrame("Frame", nil, OhNoesQueues)
 	display:SetFrameLevel(OhNoesQueues:GetFrameLevel() + 2)
 	display:Hide()
-	display:SetSize(width, 40)
+	display:SetWidth(width)
 	display:SetBackdrop(backdrop)
 	display:SetBackdropColor(unpack(backdropColor))
 
 	local caption = display:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
 	caption:SetPoint("TOP", 0, -10)
 
+	local wins = display:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	wins:SetTextColor(0, 1, 0)
+	wins:SetPoint("BOTTOMLEFT", width * 1/4, 10)
+
+	local losses = display:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	losses:SetTextColor(1, 0, 0)
+	losses:SetPoint("BOTTOMRIGHT", width * -1/4, 10)
+
+	local wintotal = display:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	wintotal:SetPoint("BOTTOM", 0, 10)
+
 	display.caption = caption
+	display.wins = wins
+	display.losses = losses
+	display.wintotal = wintotal
 	display.Update = Display_Update
 
 	LBG:RegisterCallback("Status_Updated", display, display.Update)
