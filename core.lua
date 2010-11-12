@@ -11,7 +11,9 @@ function OhNoesQueues:Init()
 	self:RegisterEvent("PARTY_LEADER_CHANGED")
 	self:RegisterEvent("RAID_ROSTER_UPDATE")
 
+	-- Prevent PVPFrame from closing when leaving a queue
 	PVPFrame:UnregisterEvent("BATTLEFIELDS_CLOSED")
+
 	--[[
 		Main Layout
 	]]
