@@ -1,3 +1,6 @@
+Version 3.1.1
+* fixed a bug with patch 4.0.6 (thanks karl_w_w!)
+
 Version 3.1
 * prevents PVPFrame from closing when leaving a queue
 * win/loss stats are back!
