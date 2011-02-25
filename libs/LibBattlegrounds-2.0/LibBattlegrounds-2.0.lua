@@ -374,13 +374,13 @@ byGUID, byLocale, byName = {}, {}, {
 	["Twin Peaks"] = {
 		uid = 108,
 		total = 5232,
-		win = 5233,
+		won = 5233,
 		icon = "Interface\\Icons\\Achievement_Zone_TwilightHighlands",
 	},
 	["The Battle for Gilneas"] = {
 		uid = 120,
 		total = 5236,
-		win = 5237,
+		won = 5237,
 		icon = "Interface\\Icons\\Achievement_Battleground_BattleForGilneas",
 	},
 
