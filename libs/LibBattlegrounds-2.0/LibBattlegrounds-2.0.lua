@@ -88,6 +88,7 @@ function Battleground:Leave()
 	else
 		if(status == "wait") then
 			readyQueue[self] = nil
+			lib:UpdateStatus()
 		elseif(status == "queued" or status == "confirm") then
 			AcceptBattlefieldPort(statusID, 0)
 		elseif(status == "active") then

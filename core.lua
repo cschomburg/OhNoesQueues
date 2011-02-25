@@ -72,6 +72,9 @@ function OhNoesQueues:Init()
 	hooksecurefunc("PVPFrame_TabClicked", function(self)
 		if(self:GetID() ~= tabID) then return OhNoesQueues:Hide() end
 
+		PVPFrame.panel1:Show()
+		PVPFrame.panel1:Hide()
+
 		OhNoesQueues:Show()
 		PVPFrame.lastSelectedTab = self
 		PVPFrameLowLevelFrame:Hide()

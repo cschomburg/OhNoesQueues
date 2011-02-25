@@ -1,3 +1,7 @@
+Version 3.1.2
+* joining a battlefield after leaving should now work correctly (karl_w_w)
+* fixed a bug with cancelling the wait status on battlegrounds (karl_w_w)
+
 Version 3.1.1
 * fixed a bug with patch 4.0.6 (thanks karl_w_w!)
 
