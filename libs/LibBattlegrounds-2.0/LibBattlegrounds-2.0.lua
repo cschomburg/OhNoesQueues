@@ -8,8 +8,6 @@ local lib = LibStub:NewLibrary("LibBattlegrounds-2.0", 1)
 if(not lib) then return end
 
 local byGUID, byName, byLocale
-local cta_hasWin, cta_winHonor, cta_winArena, cta_lossHonor, cta_lossArena
-local rnd_hasWin, rnd_winHonor, rnd_winArena, rnd_lossHonor, rnd_lossArena
 
 local Battleground = {}
 Battleground.__index = Battleground
@@ -43,11 +41,13 @@ end
 function Battleground:GetQueueStatus() return self.status, self.statusID end
 function Battleground:GetIcon() return self.icon end
 
-function Battleground:GetCurrencyBonus()
+function Battleground:GetCurrencyBonuses()
 	if(self == byName["Random Battleground"]) then
-		return rnd_hasWin, rnd_winHonor, rnd_winArena, rnd_lossHonor, rnd_lossArena
+		return true, GetRandomBGHonorCurrenyBonuses()
 	elseif(self == byName["Call to Arms"]) then
-		return cta_hasWin, cta_winHonor, cta_winArena, cta_lossHonor, cta_lossArena
+		return true, GetHolidayBGHonorCurrencyBonuses
+	else
+		return nil
 	end
 end
 
@@ -305,18 +305,6 @@ function lib:UpdateBattlegrounds()
 	if(cta_new ~= cta_old) then
 		byName["Call to Arms"] = cta_new
 		fire("CallToArms_Changed", cta_new, cta_old)
-	end
-
-	-- Fetch currency data (it's only available when BG is selected)
-	local selectedBG = self:GetSelectedBattleground()
-	if(not selectedBG) then return end -- This should never happen
-
-	if(selectedBG == byName["Call to Arms"]) then
-		cta_hasWin, cta_winHonor, cta_winArena, cta_lossHonor, cta_lossArena = GetHolidayBGHonorCurrencyBonuses()
-		fire("Currency_Updated_CallToArms")
-	elseif(selectedBG == byName["Random Battleground"]) then
-		rnd_hasWin, rnd_winHonor, rnd_winArena, rnd_lossHonor, rnd_lossArena = GetRandomBGHonorCurrencyBonuses()
-		fire("Currency_Updated_RandomBattleground")
 	end
 
 	-- Handle join requests
