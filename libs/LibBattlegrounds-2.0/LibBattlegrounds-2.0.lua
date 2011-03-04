@@ -43,7 +43,7 @@ function Battleground:GetIcon() return self.icon end
 
 function Battleground:GetCurrencyBonuses()
 	if(self == byName["Random Battleground"]) then
-		return true, GetRandomBGHonorCurrenyBonuses()
+		return true, GetRandomBGHonorCurrencyBonuses()
 	elseif(self == byName["Call to Arms"]) then
 		return true, GetHolidayBGHonorCurrencyBonuses
 	else
