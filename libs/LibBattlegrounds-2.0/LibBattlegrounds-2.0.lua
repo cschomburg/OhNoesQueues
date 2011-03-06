@@ -51,6 +51,10 @@ function Battleground:GetCurrencyBonuses()
 	end
 end
 
+function lib:HasReducedBonuses()
+	return GetRandomBGHonorCurrencyBonuses() or GetHolidayBGHonorCurrencyBonuses()
+end
+
 
 --[[############################################
 	Interacting with battlegrounds

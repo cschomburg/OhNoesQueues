@@ -23,24 +23,8 @@ local function Button_Update(self)
 
 	if(bg) then
 		local lName, canQueue, canEnter, isActive, startTime = bg:GetInfo()
-		local hasBonuses, hasWin, winHonor, winArena, lossHonor, lossArena = bg:GetCurrencyBonuses()
 
 		self.icon:SetTexture(bg:GetIcon())
-
-		if(hasBonuses and not hasWin) then
-			if(not self.shine) then
-				local shine = SpellBook_GetAutoCastShine()
-				shine:SetParent(self)
-				shine:SetPoint("CENTER", self, "CENTER")
-				AutoCastShine_AutoCastStart(shine, 0, 1)
-				self.shine = shine
-			end
-			self.shine:Show()
-		elseif(self.shine) then
-			self.shine:Hide()
-			SpellBook_ReleaseAutoCastShine(self.shine)
-			self.shine = nil
-		end
 
 		if(canEnter) then
 			self:Enable()
@@ -66,6 +50,22 @@ local function Button_UpdateStatus(self)
 		self.glow:SetVertexColor(unpack(glowColors[status]))
 	else
 		self.glow:Hide()
+	end
+
+	local hasBonuses, hasWin, winHonor, winArena, lossHonor, lossArena = self.bg:GetCurrencyBonuses()
+	if(hasBonuses and not LBG:HasReducedBonuses()) then
+		if(not self.shine) then
+			local shine = SpellBook_GetAutoCastShine()
+			shine:SetParent(self)
+			shine:SetPoint("CENTER", self, "CENTER")
+			AutoCastShine_AutoCastStart(shine, 0, 1)
+			self.shine = shine
+		end
+		self.shine:Show()
+	elseif(self.shine) then
+		self.shine:Hide()
+		SpellBook_ReleaseAutoCastShine(self.shine)
+		self.shine = nil
 	end
 end
 
