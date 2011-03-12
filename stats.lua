@@ -55,7 +55,7 @@ local function Display_Update(self)
 	local bg = self.bg
 	local height = 0
 
-	local localized = bg:GetInfo()
+	local localized, canQueue, canEnter, isActive, startTime  = bg:GetInfo()
 	local status = bg:GetQueueStatus()
 	status = status and statusTexts[status]
 	self.caption:SetText(status and ("%s (%s)"):format(localized, status) or localized)
@@ -76,6 +76,24 @@ local function Display_Update(self)
 		display.wins:Hide()
 		display.losses:Hide()
 		display.wintotal:Hide()
+	end
+
+	if(bg.isWorld) then
+		if(isActive) then
+			height = height + 30
+			display.wintotal:Show()
+			display.wintotal:SetText(YELLOW_FONT_COLOR_CODE..WINTERGRASP_IN_PROGRESS..FONT_COLOR_CODE_CLOSE)
+		elseif(startTime > 0) then
+			height = height + 30
+			display.wintotal:Show()
+			if(canQueue) then
+				display.wintotal:SetText(GREEN_FONT_COLOR_CODE..SecondsToTime(startTime)..FONT_COLOR_CODE_CLOSE)
+			else
+				display.wintotal:SetText(GRAY_FONT_COLOR_CODE..SecondsToTime(startTime)..FONT_COLOR_CODE_CLOSE)
+			end
+		else
+			display.wintotal:Hide()
+		end
 	end
 
 	display:SetHeight(height)
