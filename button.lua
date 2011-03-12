@@ -131,7 +131,6 @@ function Buttons:Create(bgName)
 	button:SetScript("OnClick", Button_OnClick)
 	button:SetScript("OnEnter", OhNoesQueues.Stats.Show)
 	button:SetScript("OnLeave", OhNoesQueues.Stats.Hide)
-	button:SetScript("OnShow", Button_UpdateStatus)
 
 	button:SetBattleground(bgName)
 	LBG:RegisterCallback("Status_Updated", button, Button_UpdateStatus)
