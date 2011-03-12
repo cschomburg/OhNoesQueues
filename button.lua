@@ -39,6 +39,8 @@ local function Button_Update(self)
 		self:SetAlpha(0.3)
 		self.icon:SetTexture()
 	end
+
+	self:UpdateStatus()
 end
 
 local function Button_UpdateStatus(self)
@@ -124,10 +126,12 @@ function Buttons:Create(bgName)
 	button.icon = icon
 	button.SetBattleground = Button_SetBattleground
 	button.Update = Button_Update
+	button.UpdateStatus = Button_UpdateStatus
 
 	button:SetScript("OnClick", Button_OnClick)
 	button:SetScript("OnEnter", OhNoesQueues.Stats.Show)
 	button:SetScript("OnLeave", OhNoesQueues.Stats.Hide)
+	button:SetScript("OnShow", Button_UpdateStatus)
 
 	button:SetBattleground(bgName)
 	LBG:RegisterCallback("Status_Updated", button, Button_UpdateStatus)
