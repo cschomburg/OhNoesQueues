@@ -27,7 +27,6 @@ function Battleground:GetInfo()
 		localizedName, canEnter, isHoliday, isRandom, uid = GetBattlegroundInfo(self.pvpID)
 		canQueue = canEnter
 	end
-
 	return localizedName, canQueue, canEnter, isActive, startTime
 end
 
@@ -55,13 +54,22 @@ function lib:HasReducedBonuses()
 	return GetRandomBGHonorCurrencyBonuses() or GetHolidayBGHonorCurrencyBonuses()
 end
 
+function lib:BattlefieldIsBattleground(i)
+	local status, name, instanceID, minLevel, maxLevel, teamSize, registeredMatch = GetBattlefieldStatus(i)
+	local isInstance, instanceType = IsInInstance()
+	if (not status or status == "none" or name == "All Arenas" or (status == "active" and instanceType ~= "pvp")) then
+		return false
+	else
+		return true
+	end
+end
 
 --[[############################################
 	Interacting with battlegrounds
 ##############################################]]
 
 local joinQueue, readyQueue, nextUpdate = {}, {}, 0
-local updater = CreateFrame"Frame"
+local updater = CreateFrame("Frame")
 
 function Battleground:Join(type, noWait)
 	self.joinType = type or true
@@ -114,7 +122,7 @@ end
 
 function lib:CheckJoin()
 	local selectedBG = self:GetSelectedBattleground()
-
+	
 	for bg in pairs(joinQueue) do
 		if(bg.isWorld) then
 			joinQueue[bg] = nil
@@ -254,20 +262,20 @@ function lib:UpdateStatus()
 	end
 
 	for i=1, MAX_BATTLEFIELD_QUEUES do
-		local status, name, instanceID, minLevel, maxLevel, teamSize, registeredMatch = GetBattlefieldStatus(i)
-		if(teamSize == 0 and status ~= "none") then
+	local status, name, instanceID, minLevel, maxLevel, teamSize, registeredMatch = GetBattlefieldStatus(i)
+		if(lib:BattlefieldIsBattleground(i)) then
 			local bg = byLocale[name]
 			bg.status = status
 			bg.statusID = i
 		end
 	end
 
-	fire("Status_Updated")	
+	fire("Status_Updated")
 end
+
 
 local events = CreateFrame("Frame")
 events:SetScript("OnEvent", function() lib:UpdateStatus() end)
-events:RegisterEvent("PLAYER_ENTERING_WORLD")
 events:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
 events:RegisterEvent("BATTLEFIELD_MGR_QUEUE_REQUEST_RESPONSE")
 events:RegisterEvent("BATTLEFIELD_MGR_QUEUE_INVITE")
@@ -389,7 +397,7 @@ byGUID, byLocale, byName = {}, {}, {
 		uid = 21,
 		icon = "Interface\\Icons\\Achievement_Zone_TolBarad",
 		isWorld = true,
-		queueReady = 1*60,
+		queueReady = 15*60,
 	},
 }
 

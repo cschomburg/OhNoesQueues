@@ -71,21 +71,19 @@ function OhNoesQueues:Init()
 
 	hooksecurefunc("PVPFrame_TabClicked", function(self)
 		if(self:GetID() ~= tabID) then return OhNoesQueues:Hide() end
-
-		PVPFrame.panel1:Show()
-		PVPFrame.panel1:Hide()
-
+		PVPHonorFrame_ResetInfo()
 		OhNoesQueues:Show()
 		PVPFrame.lastSelectedTab = self
 		PVPFrameLowLevelFrame:Hide()
 		PVPFrameLeftButton:Hide()
 		PVPFrameCurrencyLabel:SetText(HONOR)
-		PVPFrameCurrency:SetPoint("TOP", 0, 20)
+		PVPFrameCurrency:SetPoint("TOP", 0, -20)
 		PVPFrameConquestBar:Hide()
 		PVPFrameCurrencyIcon:SetTexture("Interface\\PVPFrame\\PVPCurrency-Honor-"..UnitFactionGroup("player"))
 		PVPFrame_UpdateCurrency(self, select(2, GetCurrencyInfo(HONOR_CURRENCY)))
 	end)
 	PVPFrame_TabClicked(tab)
+	OhNoesQueues:Hide()
 
 	--[[
 		Battlegrounds

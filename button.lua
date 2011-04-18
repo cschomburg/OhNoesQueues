@@ -20,7 +20,7 @@ end
 local function Button_Update(self)
 	local bg = self.bgName and LBG:Get(self.bgName)
 	self.bg = bg
-
+	
 	if(bg) then
 		local lName, canQueue, canEnter, isActive, startTime = bg:GetInfo()
 
@@ -53,22 +53,6 @@ local function Button_UpdateStatus(self)
 	else
 		self.glow:Hide()
 	end
-
-	local hasBonuses, hasWin, winHonor, winArena, lossHonor, lossArena = self.bg:GetCurrencyBonuses()
-	if(hasBonuses and not LBG:HasReducedBonuses()) then
-		if(not self.shine) then
-			local shine = SpellBook_GetAutoCastShine()
-			shine:SetParent(self)
-			shine:SetPoint("CENTER", self, "CENTER")
-			AutoCastShine_AutoCastStart(shine, 0, 1)
-			self.shine = shine
-		end
-		self.shine:Show()
-	elseif(self.shine) then
-		self.shine:Hide()
-		SpellBook_ReleaseAutoCastShine(self.shine)
-		self.shine = nil
-	end
 end
 
 local function Button_OnClick(self, button)
@@ -92,6 +76,26 @@ local function Button_OnClick(self, button)
 	end
 end
 
+local function Button_OnShow(self)
+	if(self.bgName == "Random Battleground" or self.bgName == "Call to Arms") then
+		local hasBonuses, hasWin, winHonor, winArena, lossHonor, lossArena = self.bg:GetCurrencyBonuses()
+		if(hasBonuses and not LBG:HasReducedBonuses()) then
+			if(not self.shine) then
+				local shine = SpellBook_GetAutoCastShine()
+				shine:SetParent(self)
+				shine:SetPoint("CENTER", self, "CENTER")
+				AutoCastShine_AutoCastStart(shine, 0, 1)
+				self.shine = shine
+			end
+			self.shine:Show()
+		elseif(self.shine) then
+			self.shine:Hide()
+			SpellBook_ReleaseAutoCastShine(self.shine)
+			self.shine = nil
+		end
+	end
+end
+
 function Buttons:Create(bgName)
 	local button = CreateFrame("Button", nil, OhNoesQueues)
 	button:RegisterForClicks("AnyUp")
@@ -105,7 +109,6 @@ function Buttons:Create(bgName)
 	glow:SetBlendMode("ADD")
 	glow:SetPoint("CENTER")
 	glow:SetSize(128, 128)
-	glow:Hide()
 
 	local bg = button:CreateTexture(nil, "BACKGROUND")
 	bg:SetTexture[[Interface\Spellbook\Spellbook-Parts]]
@@ -131,6 +134,7 @@ function Buttons:Create(bgName)
 	button:SetScript("OnClick", Button_OnClick)
 	button:SetScript("OnEnter", OhNoesQueues.Stats.Show)
 	button:SetScript("OnLeave", OhNoesQueues.Stats.Hide)
+	button:SetScript("OnShow", Button_OnShow)
 
 	button:SetBattleground(bgName)
 	LBG:RegisterCallback("Status_Updated", button, Button_UpdateStatus)
