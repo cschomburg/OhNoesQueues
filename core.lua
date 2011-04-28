@@ -70,7 +70,7 @@ function OhNoesQueues:Init()
 	tab:GetScript("OnShow")(tab)
 
 	hooksecurefunc("PVPFrame_TabClicked", function(self)
-		if(self:GetID() ~= tabID) then return OhNoesQueues:Hide() end
+		if(self:GetID() ~= tabID) then return OhNoesQueues:Show() end
 		PVPHonorFrame_ResetInfo()
 		OhNoesQueues:Show()
 		PVPFrame.lastSelectedTab = self
