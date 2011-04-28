@@ -55,37 +55,6 @@ function OhNoesQueues:Init()
 	end
 
 	--[[
-		Tab Setup
-	]]
-
-	local tabID = 4; while(_G["PVPFrameTab"..tabID]) do tabID = tabID+1 end
-	local tab = CreateFrame("Button", "PVPFrameTab"..tabID, PVPFrame, "CharacterFrameTabButtonTemplate")
-	PVPFrame.numTabs = tabID
-	PVPFrame["panel"..tabID] = OhNoesQueues
-	tab:SetID(tabID)
-	tab:SetText("ONQ")
-	tab:SetScript("OnClick", PVPFrameTab1:GetScript("OnClick"))
-	tab:SetPoint(PVPFrameTab1:GetPoint())
-	PVPFrameTab1:SetPoint("LEFT", tab, "RIGHT", -15, 0)
-	tab:GetScript("OnShow")(tab)
-
-	hooksecurefunc("PVPFrame_TabClicked", function(self)
-		if(self:GetID() ~= tabID) then return OhNoesQueues:Show() end
-		PVPHonorFrame_ResetInfo()
-		OhNoesQueues:Show()
-		PVPFrame.lastSelectedTab = self
-		PVPFrameLowLevelFrame:Hide()
-		PVPFrameLeftButton:Hide()
-		PVPFrameCurrencyLabel:SetText(HONOR)
-		PVPFrameCurrency:SetPoint("TOP", 0, -20)
-		PVPFrameConquestBar:Hide()
-		PVPFrameCurrencyIcon:SetTexture("Interface\\PVPFrame\\PVPCurrency-Honor-"..UnitFactionGroup("player"))
-		PVPFrame_UpdateCurrency(self, select(2, GetCurrencyInfo(HONOR_CURRENCY)))
-	end)
-	PVPFrame_TabClicked(tab)
-	OhNoesQueues:Hide()
-
-	--[[
 		Battlegrounds
 	]]
 
@@ -114,6 +83,36 @@ function OhNoesQueues:Init()
 			math.floor((i-1)/4) * -65 + 120.
 		)
 	end
+
+	--[[
+		Tab Setup
+	]]
+
+	local tabID = 4; while(_G["PVPFrameTab"..tabID]) do tabID = tabID+1 end
+	local tab = CreateFrame("Button", "PVPFrameTab"..tabID, PVPFrame, "CharacterFrameTabButtonTemplate")
+	PVPFrame.numTabs = tabID
+	PVPFrame["panel"..tabID] = OhNoesQueues
+	tab:SetID(tabID)
+	tab:SetText("ONQ")
+	tab:SetScript("OnClick", PVPFrameTab1:GetScript("OnClick"))
+	tab:SetPoint(PVPFrameTab1:GetPoint())
+	PVPFrameTab1:SetPoint("LEFT", tab, "RIGHT", -15, 0)
+	tab:GetScript("OnShow")(tab)
+
+	hooksecurefunc("PVPFrame_TabClicked", function(self)
+		if(self:GetID() ~= tabID) then return OhNoesQueues:Hide() end
+		PVPHonorFrame_ResetInfo()
+		OhNoesQueues:Show()
+		PVPFrame.lastSelectedTab = self
+		PVPFrameLowLevelFrame:Hide()
+		PVPFrameLeftButton:Hide()
+		PVPFrameCurrencyLabel:SetText(HONOR)
+		PVPFrameCurrency:SetPoint("TOP", 0, -20)
+		PVPFrameConquestBar:Hide()
+		PVPFrameCurrencyIcon:SetTexture("Interface\\PVPFrame\\PVPCurrency-Honor-"..UnitFactionGroup("player"))
+		PVPFrame_UpdateCurrency(self, select(2, GetCurrencyInfo(HONOR_CURRENCY)))
+	end)
+	PVPFrame_TabClicked(tab)
 
 	--[[
 		JoinType Bar

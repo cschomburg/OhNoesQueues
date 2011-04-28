@@ -77,6 +77,8 @@ local function Button_OnClick(self, button)
 end
 
 local function Button_OnShow(self)
+	if(not self.bg) then return end
+
 	if(self.bgName == "Random Battleground" or self.bgName == "Call to Arms") then
 		local hasBonuses, hasWin, winHonor, winArena, lossHonor, lossArena = self.bg:GetCurrencyBonuses()
 		if(hasBonuses and not LBG:HasReducedBonuses()) then
@@ -109,6 +111,7 @@ function Buttons:Create(bgName)
 	glow:SetBlendMode("ADD")
 	glow:SetPoint("CENTER")
 	glow:SetSize(128, 128)
+	glow:Hide()
 
 	local bg = button:CreateTexture(nil, "BACKGROUND")
 	bg:SetTexture[[Interface\Spellbook\Spellbook-Parts]]

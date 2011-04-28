@@ -273,9 +273,17 @@ function lib:UpdateStatus()
 	fire("Status_Updated")
 end
 
+local function events_OnEvent(self, event, ...)
+	if(event == "PLAYER_ENTERING_WORLD") then
+		PVPHonorFrame_ResetInfo()
+	else
+		lib:UpdateStatus()
+	end
+end
 
 local events = CreateFrame("Frame")
-events:SetScript("OnEvent", function() lib:UpdateStatus() end)
+events:SetScript("OnEvent", events_OnEvent)
+events:RegisterEvent("PLAYER_ENTERING_WORLD")
 events:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
 events:RegisterEvent("BATTLEFIELD_MGR_QUEUE_REQUEST_RESPONSE")
 events:RegisterEvent("BATTLEFIELD_MGR_QUEUE_INVITE")
