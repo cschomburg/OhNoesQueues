@@ -1,4 +1,7 @@
-Version 3.1.2
+Version 3.2.1
+- several bug fixes (karl_w_w)
+
+Version 3.2
 * time until battle in wintergrasp/tol barad (karl_w_w)
 * bonus inidicators (karl_w_w)
 - fix: joining a battlefield after leaving should now work correctly (karl_w_w)
