@@ -99,6 +99,23 @@ function OhNoesQueues:Init()
 	PVPFrameTab1:SetPoint("LEFT", tab, "RIGHT", -15, 0)
 	tab:GetScript("OnShow")(tab)
 
+	hooksecurefunc("PVPFrame_UpdateCurrency", function(self, currency)
+		if ( not currency and self.lastSelectedTab and self.lastSelectedTab:GetID() == tabID ) then
+			PVPFrameCurrency.currencyID = HONOR_CURRENCY
+			_, currency = GetCurrencyInfo(HONOR_CURRENCY)
+			if currency then
+				PVPFrameCurrencyValue:SetText(currency)
+				PVPFrameCurrencyLabel:Show()
+				PVPFrameCurrencyIcon:Show()
+				PVPFrameCurrencyValue:Show()
+			else
+				PVPFrameCurrencyLabel:Hide();
+				PVPFrameCurrencyIcon:Hide();
+				PVPFrameCurrencyValue:Hide();
+			end
+		end
+	end)
+
 	hooksecurefunc("PVPFrame_TabClicked", function(self)
 		if(self:GetID() ~= tabID) then return OhNoesQueues:Hide() end
 		PVPHonorFrame_ResetInfo()
