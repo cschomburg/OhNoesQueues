@@ -1,3 +1,6 @@
+Version 3.2.2
+- patch 4.3 compatibility fix (thanks karl_w_w as usual :D)
+
 Version 3.2.1
 - several bug fixes (karl_w_w)
 

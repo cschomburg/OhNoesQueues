@@ -261,7 +261,7 @@ function lib:UpdateStatus()
 		end
 	end
 
-	for i=1, MAX_BATTLEFIELD_QUEUES do
+	for i=1, GetMaxBattlefieldID() do
 	local status, name, instanceID, minLevel, maxLevel, teamSize, registeredMatch = GetBattlefieldStatus(i)
 		if(lib:BattlefieldIsBattleground(i)) then
 			local bg = byLocale[name]
