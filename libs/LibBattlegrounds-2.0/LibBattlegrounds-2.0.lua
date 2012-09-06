@@ -134,7 +134,7 @@ function lib:CheckJoin()
 			if(bg.joinType == "wargame") then
 				StartWarGame()
 			else
-				JoinBattlefield(0, bg.joinType == "group" and IsPartyLeader())
+				JoinBattlefield(0, bg.joinType == "group" and UnitIsGroupLeader("player"))
 			end
 			bg.joinType = nil
 		end
@@ -392,11 +392,20 @@ byGUID, byLocale, byName = {}, {}, {
 		won = 5237,
 		icon = "Interface\\Icons\\Achievement_Battleground_BattleForGilneas",
 	},
-
+	["Silvershard Mines"] = {
+		uid = 708,
+		total = 7829,
+		won = 7830,
+		icon = "Interface\\Icons\\achievement_battleground_silvershardmines",
+	},
+	["Temple of Kotmogu"] = {
+		uid = 699,
+		total = 7825,
+		won = 7826,
+		icon = "Interface\\Icons\\achievement_battleground_templeofkotmogu",
+	},
 	["Wintergrasp"] = {
 		uid = 1,
-		icon = "",
-		icon = "",
 		isWorld = true,
 		queueReady = 15*60,
 		icon = "Interface\\Icons\\Achievement_Zone_DragonBlight_09",

@@ -6,13 +6,9 @@ local OhNoesQueues = CreateFrame("Frame", "OhNoesQueues", PVPFrame)
 
 function OhNoesQueues:Init()
 	self:SetScript("OnShow", nil)
-	self:RegisterEvent("PLAYER_TARGET_CHANGED")
 	self:RegisterEvent("PARTY_MEMBERS_CHANGED")
 	self:RegisterEvent("PARTY_LEADER_CHANGED")
 	self:RegisterEvent("RAID_ROSTER_UPDATE")
-
-	-- Prevent PVPFrame from closing when leaving a queue
-	PVPFrame:UnregisterEvent("BATTLEFIELDS_CLOSED")
 
 	--[[
 		Main Layout
@@ -58,29 +54,22 @@ function OhNoesQueues:Init()
 		Battlegrounds
 	]]
 
-	local random = self.Buttons:Create("Random Battleground")
-	random:SetScale(1.2)
-	random:SetPoint("TOPRIGHT", self, "TOP", -15, -25)
-
-	local cta = self.Buttons:Create("Call to Arms")
-	cta:SetScale(1.2)
-	cta:SetPoint("TOPLEFT", self, "TOP", 15, -25)
-
-	local wg = self.Buttons:Create("Wintergrasp")
-	wg:SetScale(1.2)
-	wg:SetPoint("TOPRIGHT", self, "TOP", -15, -85)
-
-	local tb = self.Buttons:Create("Tol Barad")
-	tb:SetScale(1.2)
-	tb:SetPoint("TOPLEFT", self, "TOP", 15, -85)
+	for i, bgName in pairs{"Random Battleground", "Call to Arms",
+		"Wintergrasp", "Tol Barad"
+	} do
+		local bg = self.Buttons:Create(bgName)
+		bg:SetScale(1.2)
+		bg:SetPoint("TOPLEFT", self, "TOPLEFT", 55, -25 - (i-1)*60)
+	end
 
 	for i, bgName in pairs{
 		"Warsong Gulch", "Arathi Basin", "Alterac Valley", "Eye of the Storm",
 		"Strand of the Ancients", "Isle of Conquest", "Twin Peaks", "The Battle for Gilneas",
+		"Silvershard Mines", "Temple of Kotmogu",
 	} do
-		self.Buttons:Create(bgName):SetPoint("BOTTOMLEFT",
-			((i-1) % 4) * 65 + 45,
-			math.floor((i-1)/4) * -65 + 120.
+		self.Buttons:Create(bgName):SetPoint("TOPRIGHT",
+			(i > 5 and -45 or -105),
+			((i-1) % 5) * -60 - 20
 		)
 	end
 
@@ -99,22 +88,11 @@ function OhNoesQueues:Init()
 	PVPFrameTab1:SetPoint("LEFT", tab, "RIGHT", -15, 0)
 	tab:GetScript("OnShow")(tab)
 
-	hooksecurefunc("PVPFrame_UpdateCurrency", function(self, currency)
-		if ( not currency and self.lastSelectedTab and self.lastSelectedTab:GetID() == tabID ) then
-			PVPFrameCurrency.currencyID = HONOR_CURRENCY
-			_, currency = GetCurrencyInfo(HONOR_CURRENCY)
-			if currency then
-				PVPFrameCurrencyValue:SetText(currency)
-				PVPFrameCurrencyLabel:Show()
-				PVPFrameCurrencyIcon:Show()
-				PVPFrameCurrencyValue:Show()
-			else
-				PVPFrameCurrencyLabel:Hide();
-				PVPFrameCurrencyIcon:Hide();
-				PVPFrameCurrencyValue:Hide();
-			end
-		end
-	end)
+	-- Shorten War Games tab
+	PVPFrameTab4Text:SetText("War")
+	PVPFrameTab4:SetWidth(50)
+	PVPFrameTab4:Hide() -- force layout update
+	PVPFrameTab4:Show()
 
 	hooksecurefunc("PVPFrame_TabClicked", function(self)
 		if(self:GetID() ~= tabID) then return OhNoesQueues:Hide() end
@@ -144,7 +122,7 @@ function OhNoesQueues:Init()
 	end
 
 	local typeButtons = {}
-	for i=1, 3 do
+	for i=1, 2 do
 		local button = CreateFrame("Button", nil, OhNoesQueues)
 		button:SetNormalFontObject("GameFontHighlight")
 		button:SetDisabledFontObject("GameFontNormal")
@@ -154,17 +132,14 @@ function OhNoesQueues:Init()
 		typeButtons[i] = button
 	end
 
-	typeButtons[1]:SetPoint("BOTTOMLEFT", 20, -2)
-	typeButtons[2]:SetPoint("BOTTOM", 0, -2)
-	typeButtons[3]:SetPoint("BOTTOMRIGHT", -20, -2)
+	typeButtons[1]:SetPoint("BOTTOMLEFT", 60, -2)
+	typeButtons[2]:SetPoint("BOTTOMRIGHT", -60, -2)
 
 	typeButtons[1].type = "solo"
 	typeButtons[2].type = "group"
-	typeButtons[3].type = "wargame"
 
 	typeButtons[1].text = "Solo"
 	typeButtons[2].text = "Group"
-	typeButtons[3].text = "War Game"
 
 	self.TypeButtons = typeButtons
 	self:UpdateJoinType()
@@ -184,18 +159,11 @@ function OhNoesQueues:SetJoinType(type)
 end
 
 function OhNoesQueues:UpdateJoinType()
-	if((GetNumPartyMembers() > 0 or GetNumRaidMembers() > 0) and IsPartyLeader()) then
+	if(IsInGroup() and UnitIsGroupLeader("player")) then
 		self.TypeButtons[2]:Enable()
-		if(UnitIsPlayer("target")) then
-			self.TypeButtons[3]:Enable()
-			self:SetJoinType("wargame")
-		else
-			self.TypeButtons[3]:Disable()
-			self:SetJoinType("group")
-		end
+		self:SetJoinType("group")
 	else
 		self.TypeButtons[2]:Disable()
-		self.TypeButtons[3]:Disable()
 		self:SetJoinType("solo")
 	end
 end
